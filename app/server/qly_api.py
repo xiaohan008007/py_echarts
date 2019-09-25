@@ -400,7 +400,7 @@ def spider_1688_catinfo(keyword):
 def cats_forcast(q):
     keyword = q
     q = quote(q, 'utf-8')
-    request_url = 'http://121.199.77.204:30001/youche/getInsightCatsforecastnew.do?bidwordList=' + q
+    request_url = 'http://47.92.145.108:30003/youche/getInsightCatsforecastnew.do?bidwordList=' + q
     s = urllib.request.urlopen(request_url).read().decode('utf8')
     json_data = json.loads(s)
     cat_list = json_data['simba_insight_catsforecastnew_get_response']['category_forecast_list'][
@@ -414,7 +414,7 @@ def read_region(q, star_date, end_date):
     # q = '11'
     keyword = q
     q = quote(q, 'utf-8')
-    request_url = 'http://121.199.77.204:30001/youche/wordsArea.do?keyword='+q+'&startDate='+star_date+'&endDate='+end_date
+    request_url = 'http://47.92.145.108:30003/youche/wordsArea.do?keyword='+q+'&startDate='+star_date+'&endDate='+end_date
     s = urllib.request.urlopen(request_url).read().decode('utf8')
     json_data = json.loads(s)
     region_list = json_data['simba_insight_wordsareadata_get_response']['word_areadata_list']['insight_words_area_distribute_data_d_t_o']
