@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="js/iview.css">
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="js/iview.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <style>
+        .inner{
+            position: relative;
+            padding-left: 110px;
+            height: 30px;
+            line-height: 30px;
+            font-size: 15px;
+            border-bottom: 1px dashed #cce5ff;
+        }
+        .inner span{
+            border-right: 1px solid #e0e0e0;
+            display: inline-block;
+            width: 10px;
+            height: 12px;
+            padding-left: 15px;
+        }
+        .item-name {
+            position: absolute;
+            left: 0;
+            width: 130px;/*110*/
+            top: 0;
+            bottom: 0;
+            text-align: right;
+            color: #323232;
+
+        }
+        .item-value {
+            color: #646464;
+            padding-left:35px;
+            overflow: hidden;
+            text-overflow:ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- <i-button @click="show_modal('info')">Info</i-button> -->
+    
+    <Row>
+        <i-col span="24"></i-col>
+        
+    </Row>
+    
+    <br>
+    <Row >
+        <i-col span="2">&nbsp;&nbsp;&nbsp;&nbsp;
+            <i-switch v-model="formInline.cate_switch" size="large">
+                <span slot="open">全部</span>
+                <span slot="close">无标</span>
+            </i-switch>
+        </i-col>
+        <i-col span="4"><div>
+            粉丝大于:
+            <i-input type="text" v-model="formInline.fans_min" style="width: auto" placeholder="10000">
+                <!-- <Icon type="ios-arrow-forward" slot="prepend"></Icon> -->
+            </i-input>
+        </div></i-col>
+        <i-col span="4"><div>
+            粉丝小于:
+            <i-input type="text"  v-model="formInline.fans_max"  style="width: auto" placeholder="无限">
+                <!-- <Icon type="ios-arrow-back" slot="prepend" label="小于"></Icon> -->
+            </i-input>
+        </div></i-col>
+        <i-col span="4"><div>
+            抖音号:
+            <i-input type="text"  v-model="formInline.author_id"  placeholder="严格匹配" style="width: auto">
+                <!-- <Icon type="ios-list-box-outline" slot="prepend" ></Icon> -->
+            </i-input>
+        </div></i-col>
+        <i-col span="1"><FormItem>
+            <i-button type="primary" @click="handleSubmit('formInline')">搜索</i-button>
+        </FormItem></i-col>
+        <i-col span="1">&nbsp;</i-col>
+        <i-col span="4">添加未收录:
+            <i-input type="text"  v-model="formInline.new_author"  style="width: auto" placeholder="抖音id">
+                <!-- <Icon type="ios-arrow-back" slot="prepend" label="小于"></Icon> -->
+            </i-input></i-col>
+        <i-col span="3">
+            类目:
+            <i-select v-model="formInline.new_cate"  style="width:100px">
+                <i-option v-for="item in douyin_cate_list" :value="item.key" :key="item.key">{{ item.value }}</i-option>
+            </i-select>
+        </i-col>
+        <i-col span="1"><i-button type="error" @click="updateData('','push_user')">添加</i-button></i-col>
+        
+        
+        
+        
+    </Row>
+    <br>
+    <Row>
+        <i-col span="24"><i-table stripe  :columns="columns1" :data="historyData"></i-table></i-col>
+    </Row>
+
+
+    <Page :total="dataCount" :page-size="pageSize" show-total @on-change="agency"></Page>
+</div>
+<script>
+ var vm = new Vue({
+        el: '#app',
+        data: {
+            list:[],  //接口获取的总数据
+            dataCount:"", // 总数据的条目
+            pageSize:10,     // 每页显示多少条
+            switch1: false,
+            douyin_cate_list:[],
+            columns1:[
+                    {
+                        title: '头像',
+                        key: 'avatar_url',
+                        width:80,
+                        render: (h, params) => {
+                            const row = params.row;
+                            return h('div', [
+                                h('img', {
+                                    style:{
+                                        width: "80px",
+                                        verticalAlign: "middle"
+                                    },
+                                    attrs:{
+                                        src:row.avatar_url
+                                    },
+                                    on:{
+                                        click:()=>{
+                                            window.open("https://www.douyin.com/share/user/"+row.uid,"_blank")
+                                        }
+                                    }
+                                })
+                                
+                            ]);
+                        }
+                    },
+                    {
+                        title: '抖音id',
+                        key: 'author_id',
+                        width:90,
+                        render: (h, params) => {
+                            const row = params.row;
+                            return h('a', {
+                                    attrs: {
+                                         href: "https://www.douyin.com/share/user/"+row.uid,
+                                         target: '_black'
+                                     }
+                           }, params.row.author_id)
+
+                        }
+                    },
+                    {
+                        title: '昵称',
+                        key: 'nickname',
+                        width:100
+                    },
+                    {
+                        title: '更新时间',
+                        key: 'ts',
+                        width:100
+                    },
+                    {
+                        title: '日更',
+                        key: 'update_daily',
+                        width:60
+                    },
+                    {
+                        title: '认证',
+                        key: 'verify',
+                        width:60
+                    },
+                     {
+                        title: '粉丝数',
+                        key: 'follower_count',
+                        width:85
+                    },
+                    {
+                        title: '画像',
+                        key: 'fans_pic',
+                        width:60
+                    },
+                    {
+                        title: '作品',
+                        key: 'aweme_count',
+                        width:70
+                    },
+                    {
+                        title: '作品1',
+                        key: 'aweme1_pic',
+                        width:100,
+                        render: (h, params) => {
+                            const row = params.row;
+                            return h('div', [
+                                h('img', {
+                                    style:{
+                                        // width: "80px",
+                                        height: "100px",
+                                        verticalAlign: "middle"
+                                    },
+                                    attrs:{
+                                        src:row.aweme1_pic
+                                    },
+                                    on:{
+                                        click:()=>{
+                                            window.open(row.aweme1_link,"_blank")
+                                        }
+                                    }
+                                })
+                                
+                            ]);
+                        }
+                    },
+                    {
+                        title: '作品2',
+                        key: 'aweme2_pic',
+                        width:100,
+                        render: (h, params) => {
+                            const row = params.row;
+                            return h('div', [
+                                h('img', {
+                                    style:{
+                                        // width: "80px",
+                                        height: "100px",
+                                        verticalAlign: "middle"
+                                    },
+                                    attrs:{
+                                        src:row.aweme2_pic
+                                    },
+                                    on:{
+                                        click:()=>{
+                                            window.open(row.aweme2_link,"_blank")
+                                        }
+                                    }
+                                })
+                                
+                            ]);
+                        }
+                    },
+                    {
+                        title: '作品3',
+                        key: 'aweme3_pic',
+                        width:100,
+                        render: (h, params) => {
+                            const row = params.row;
+                            return h('div', [
+                                h('img', {
+                                    style:{
+                                        // width: "80px",
+                                        height: "100px",
+                                        verticalAlign: "middle"
+                                    },
+                                    attrs:{
+                                        src:row.aweme3_pic
+                                    },
+                                    on:{
+                                        click:()=>{
+                                            window.open(row.aweme3_link,"_blank")
+                                        }
+                                    }
+                                })
+                                
+                            ]);
+                        }
+                    },
+                     {
+                        title: '评论词',
+                        key: 'comment_word'
+                    },
+                     {
+                        title: '签名',
+                        key: 'signature'
+                    },
+{
+                        title: '类目',
+                        key: 'douyin_catename',
+                        width: 60
+                    },
+                    {
+                        title: '选类目',
+                        key: 'action2',
+                        width: 100,
+                        align: 'center',
+                        render: (h, params) => {     
+                                  
+                        //下拉可选荐
+                        var option = (vm.douyin_cate_list||[]).map((item)=>{
+                          return h('Option',{
+                                props:{
+                                  value:item.key
+                                  // key:item.key
+                                }
+                              },item.value)}
+                          )
+                          // console.log(this.rollbackDataList[params.index].ver )
+                        return h('Select', {                  
+                          props:{
+                            value:vm.douyin_cate_list[0].value
+                            // value : ”“ //默认的值
+                            //value:this.data[params.index].action2
+                        // value: this.data[params.index].action
+                            //  value:this.rollbackDataList[params.index].ver[0]               
+                          }, 
+                          on: {  
+                              'on-change':(event) => {
+                                var author_id=params.row.author_id
+                                var nickname = params.row.nickname
+                                var cate_id=event
+                                // alert(author_id+" "+cate_id)
+                                if (typeof(cate_id) == "undefined"){
+                                    return
+                                }
+                                audit_user=vm.getLocationParam()
+                                 if (typeof(audit_user) == "undefined"){
+                                    audit_user="未登记"
+                                }
+                                let url ="http://192.168.3.140:9911/douyin_change_cate?author_id="+author_id+"&douyin_cid="+cate_id+"&audit_user="+audit_user+"&nickname="+nickname; //本地模拟的数据
+                                $.ajax({ url: url, dataType: "json",
+                                    success: function(res){
+                                        var msg_type='success'
+                                        var color = ""
+                                        if (res.code!=1 || res.fans_code!=1){
+                                            msg_type='error'
+                                            color = "red"
+                                        }
+                                        push_update_msg = res.msg
+                                        push_fans_msg = res.fans_msg
+                                        msg="<p>用户:<b><font color=\"blue\">"+audit_user+"</font></b></p><p><font color=\""+color+"\">用户信息(类目)更新："+push_update_msg+"，请5分钟后查看</font></p><p>粉丝画像更新："+push_fans_msg+"，请1小时后查看</p>"
+                                        vm.show_modal(msg_type,msg)
+                                    },
+                                    error: function(res){
+                                        console.log("读取失败!");
+                                    }
+                                });
+
+                                   
+                                // self.changeCate(params.index)
+                                // console.log(this.data[params.index].flowName)
+                                //选中的值将可以通过
+                                // this.rollbackDataList[params.index].value = event
+                              }  
+                          },
+                        }, option);  
+                      },  
+                    },
+                    {
+                        title: 'Action',
+                        key: 'action3',
+                        width: 80,
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Button', {
+                                    props: {
+                                        type: 'primary',
+                                        size: 'small'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            vm.updateData(params.row.author_id,'push_user')
+                                        }
+                                    }
+                                }, '更新达人'),
+                                h('Button', {
+                                    props: {
+                                        type: 'warning',
+                                        size: 'small'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            vm.updateData(params.row.author_id,'push_fans')
+                                        }
+                                    }
+                                }, '粉丝画像'),
+                                h('Button', {
+                                    props: {
+                                        type: 'success',
+                                        size: 'small'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            vm.updateData(params.row.author_id,'push_daily')
+                                        }
+                                    }
+                                }, '加入日更')
+                            ]);
+                        }
+                    }
+                
+                ],
+            historyData:'',  //展示的数据
+            formInline: {
+                    cate_switch:false,
+                    fans_min: '',
+                    fans_max: '',
+                    new_author:'',
+                    new_cate:'',
+                    input1:''
+                },
+            ruleInline: {
+                    fans_min: [
+                        { required: true, message: 'Please fill in the user name', trigger: 'blur' }
+                    ],
+                    fans_max: [
+                        { required: true, message: 'Please fill in the password.', trigger: 'blur' },
+                        { type: 'string', min: 6, message: 'The password length cannot be less than 6 bits', trigger: 'blur' }
+                    ]
+                }
+
+        },
+        created:function(){
+            this.agency(1);
+            this.changepage();
+        },
+        methods:{
+            ok () {
+                this.$Message.info('Clicked ok');
+            },
+            cancel () {
+                this.$Message.info('Clicked cancel');
+            },
+            agency(index,fans_min,fans_max,author_id) {
+                
+                let self=this;   //申明个this对象
+                if (typeof(fans_min) == "undefined"){
+                    fans_min=""
+                }
+                if (typeof(fans_max) == "undefined"){
+                    fans_max=""
+                }
+                if (typeof(author_id) == "undefined"){
+                    author_id=""
+                }
+                show_all=this.formInline.cate_switch
+                let url ='http://192.168.3.140:9911/douyin_data?page='+index+"&page_size="+self.pageSize+"&fans_min="+fans_min.trim()+"&fans_max="+fans_max.trim()+"&author_id="+author_id.trim()+"&show_all="+show_all; //本地模拟的数据
+                $.ajax({ url: url, dataType: "json",
+                    success: function(res){
+                        self.dataCount = res.total; //接口返回数据的总条目数
+                        self.list=res.datalist;   //接口返回的总数据
+                        self.douyin_cate_list=res.douyin_cate_list
+                        //    console.log(self.list)
+                        if(self.dataCount < self.pageSize){   //如果数据的总条目数小于每页显示的条目数就赋值，否则就提取总数据的第三条
+                            self.historyData   = self.list
+                            //console.log(self.historyData)
+                        }else{
+                            self.historyData = self.list.slice(0,self.pageSize);
+                            //   console.log(self.historyData)
+                        }
+                    },
+                    error: function(res){
+                        console.log("读取失败!");
+                    }
+                });
+            },
+            //页数变化的时候改变每一页的内容
+            changepage(index){
+                let self = this
+                let _start = ( index - 1 ) * self.pageSize;
+                let _end = index * self.pageSize;
+                self.historyData = self.list.slice(_start,_end);
+            },
+            handleSubmit(name) {
+                this.agency(1,this.formInline.fans_min,this.formInline.fans_max,this.formInline.author_id)
+                //name = $("#username_id").val()
+                //console.log(name)
+                //console.log(this.$refs.user.value)
+                
+            },
+            changeCate(index){
+                console.log(self.historyData[index].flowLogicId)
+            },
+            updateData(author_id,method){
+                var new_cate=''
+                if (author_id==''){
+                    author_id=this.formInline.new_author
+                    new_cate=this.formInline.new_cate
+                }
+                let url ='http://192.168.3.140:9911/douyin/'+method+'?author_id='+author_id.trim()+"&douyin_cid="+new_cate; //本地模拟的数据
+                $.ajax({ url: url, dataType: "json",
+                    success: function(res){
+                         var msg_type='success'
+                         var msg=''
+                         if (method == "push_user"){
+                            if(res.code!=1){
+                                msg_type='error'
+                            }
+                            msg="<p>更新达人结果:"+res.msg+"</p><p>达人信息来自:"+res.from+"</p><p>5分钟后查看</p>"
+                         }else if(method == "push_fans"){
+                            if(res.fans_code!=1){
+                                msg_type='error'
+                            }
+                            msg="<p>加入粉丝画像队列结果:"+res.fans_msg+"</p><p>1小时后查看</p>"
+                         }else if(method == "push_daily"){
+                            if(res.code!=1){
+                                msg_type='error'
+                            }
+                            msg="<p>加入每日更新结果:"+res.msg+"</p><p>请隔日查看</p>"
+                         }
+                        
+                         
+                        vm.show_modal(msg_type,msg)
+                    },
+                    error: function(res){
+                        vm.show_modal('error','加载数据失败！')
+                    }
+                });
+            },
+            getLocationParam(){
+                var str=location.href; //取得整个地址栏
+                var num=str.indexOf("?")
+                str=str.substr(num+1); //取得所有参数   stringvar.substr(start [, length ]
+
+                var arr=str.split("&"); //各个参数放到数组里
+                return arr[0].split("=")[1]
+               //  for(var i=0;i < arr.length;i++){
+               //      num=arr[i].indexOf("=");
+               //      if(num>0){
+               //           name=arr[i].substring(0,num);
+               //           value=arr[i].substr(num+1);
+               //           this[name]=value;
+               //      }
+               // }
+            },
+            // showall (status) {
+            //     this.$Message.info('开关状态：' + status);
+            // },
+            show_modal (type,msg) {
+                                    const title = '操作提示';
+                                    const content = msg;
+                                    switch (type) {
+                                        case 'info':
+                                            this.$Modal.info({
+                                                title: title,
+                                                content: content
+                                            });
+                                            break;
+                                        case 'success':
+                                            this.$Modal.success({
+                                                title: title,
+                                                content: content
+                                            });
+                                            break;
+                                        case 'warning':
+                                            this.$Modal.warning({
+                                                title: title,
+                                                content: content
+                                            });
+                                            break;
+                                        case 'error':
+                                            this.$Modal.error({
+                                                title: title,
+                                                content: content
+                                            });
+                                            break;
+                                    }
+                                }
+
+        }
+    })
+</script>
+</body>
+</html>

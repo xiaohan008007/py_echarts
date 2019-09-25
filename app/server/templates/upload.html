@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+    <body>
+    普通：
+        <div>
+            <form method="post" action="http://127.0.0.1:9963/up_ocr" enctype="multipart/form-data">
+            <input type="file" size="30" name="photo"/>
+
+
+            <input type="submit" value="提交信息" class="button-new" style="margin-top:15px;"/>
+            </form>
+        </div>
+    <div>
+        高清：
+            <form method="post" action="http://127.0.0.1:9963/up_ocr" enctype="multipart/form-data">
+            <input type="file" size="30" name="photo"/><input type="hidden" size="30" name="high" id="high" value="1"/>
+
+
+            <input type="submit" value="提交信息" class="button-new" style="margin-top:15px;"/>
+            </form>
+        </div>
+<div>
+            google：
+            <form method="post" action="http://127.0.0.1:9963/ocr_google" enctype="multipart/form-data">
+            <input type="file" size="30" name="photo"/>
+
+            <input type="submit" value="提交信息" class="button-new" style="margin-top:15px;"/>
+            </form>
+        </div>
+
+    <div>
+        定制(beta)：
+            <form method="post" action="http://172.16.31.133:9963/up_ocr" enctype="multipart/form-data">
+            <input type="file" size="30" name="photo"/><input type="hidden" size="30" name="merge" id="merge" value="1"/>
+            <br>
+                店铺：1 ， 商品：2 ，品牌：3
+            <br>请填写图片类型：<input type="text" class="txt_input" name="photo_type" value="1" style="margin-top:15px;"/>
+            <input type="submit" value="提交信息" class="button-new" style="margin-top:15px;"/>
+            </form>
+        </div>
+    <script>
+
+//**blob to dataURL**
+    function blobToDataURL(blob, callback) {
+        var a = new FileReader();
+        a.onload = function (e) { callback(e.target.result); }
+        a.readAsDataURL(blob);
+    }
+function sumitImageFile(base64Codes) {
+    console.log(base64Codes)
+    var convertBase64UrlToBlob = function (urlData) {
+        var arr = urlData.split(',');
+        var mime = arr[0].match(/:(.*?);/)[1];
+        var bytes = window.atob(urlData.split(',')[1]);        //去掉url的头，并转换为byte
+
+        //处理异常,将ascii码小于0的转换为大于0
+        var ab = new ArrayBuffer(bytes.length);
+        var ia = new Uint8Array(ab);
+        for (var i = 0; i < bytes.length; i++) {
+            ia[i] = bytes.charCodeAt(i);
+        }
+
+        return new Blob([ab], { type: mime });
+    };
+
+    var getFileExt = function (urlData) {
+        var arr = urlData.split(',');
+        var mime = arr[0].match(/:(.*?);/)[1];
+        return mime.replace("image/", "");
+    };
+
+    var deferred = $.Deferred();
+
+    var form = document.forms[0];
+
+    //var formData = new FormData(form);   //这里连带form里的其他参数也一起提交了,如果不需要提交其他参数可以直接FormData无参数的构造函数
+    var formData = new FormData();
+
+    var fileExt = getFileExt(base64Codes);
+
+    //convertBase64UrlToBlob函数是将base64编码转换为Blob
+    formData.append("b64_photo", convertBase64UrlToBlob(base64Codes), "file_" + Date.parse(new Date()) + "." + fileExt);  //append函数的第一个参数是后台获取数据的参数名,和html标签的input的name属性功能相同
+
+    //ajax 提交form
+    $.ajax({
+        url: 'http://127.0.0.1:9963/up_ocr',
+        type: "POST",
+        data: formData,
+        //dataType: "text",
+        processData: false,         // 告诉jQuery不要去处理发送的数据
+        contentType: false,        // 告诉jQuery不要去设置Content-Type请求头
+
+        success: function (data) {
+            //console.log(data);
+            if (data) {
+                data = JSON.parse(data);
+                if (data.state == "SUCCESS") {
+                    deferred.resolve(window.location.origin + data.url);
+                }
+                else {
+                    deferred.reject("error");
+                }
+            }
+
+            else {
+                deferred.reject("error");
+            }
+
+            //window.location.href = "${ctx}" + data;
+        },
+        xhr: function () {            //在jquery函数中直接使用ajax的XMLHttpRequest对象
+            var xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener("progress", function (evt) {
+                if (evt.lengthComputable) {
+                    var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+                    console.log("正在提交." + percentComplete.toString() + '%');        //在控制台打印上传进度
+                }
+            }, false);
+
+            return xhr;
+        }
+
+    });
+
+    return deferred.promise();
+}
+var blob = new Blob(["blob:https://sycm.taobao.com/59bcca7d-a791-4450-8fad-11bf24ecf756"],{type:"text/plain;charset=utf-8"});
+blobToDataURL(blob,sumitImageFile)
+
+    </script>
+    </body>
+</html>

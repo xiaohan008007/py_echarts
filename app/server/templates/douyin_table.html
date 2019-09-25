@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width" />
+    <title>BootStrap Table使用</title>
+    <!--&lt;!&ndash;@*1、Jquery组件引用*@&ndash;&gt;-->
+    <!--<script src="/static/jquery-1.12.4.min.js"></script>-->
+
+    <!--&lt;!&ndash;@*2、bootstrap组件引用*@&ndash;&gt;-->
+    <!--<script src="/static/bootstrap.js"></script>-->
+    <!--<link href="/static/bootstrap.css" rel="stylesheet" />-->
+
+    <!--&lt;!&ndash;@*3、bootstrap table组件以及中文包的引用*@&ndash;&gt;-->
+    <!--<script src="/static/bootstrap-table.js"></script>-->
+    <!--<link href="/static/bootstrap-table.css" rel="stylesheet" />-->
+    <!--<script src="/static/bootstrap-table-zh-CN.js"></script>-->
+
+    <!-- jquery -->
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+
+    <!-- bootstrap -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- bootstrap-table -->
+    <link href="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap-table/1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+</head>
+<body>
+
+
+{#     推荐用这种方式，比较灵活#}
+<div style="width: 80%;margin: 0 auto">
+    <table id="table" ></table>
+</div>
+{#     1.先定义一个空表#}
+{#     2.用js初始化表，并填充数据#}
+<script type="text/javascript">
+    $(function () {
+        $('#table').bootstrapTable({
+            url: '/douyin_user_search',  // 请求数据源的路由
+            dataType: "json",
+            pagination: true, //前端处理分页
+            singleSelect: false,//是否只能单选
+            search: true, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pageNumber: 1, //初始化加载第10页，默认第一页
+            pageSize: 10, //每页的记录行数（*）
+            pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
+            strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
+            showColumns: true, //显示内容列下拉框
+            showRefresh: true, //显示刷新按钮
+            minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
+            clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
+            {#        height: 500, //表格高度，如果没有设置height属性，表格自动根据记录条数决定表格高度#}
+            uniqueId: "id", //每一行的唯一标识，一般为主键列
+            showToggle: true, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            {#        detailView: true, //是否显示父子表，设置为 true 可以显示详细页面模式,在每行最前边显示+号#}
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            columns: [{  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price
+　　　　　　　　　　　　　　　　//跟后端的字段名id  name price是完全一样的.
+
+                field: 'id',
+                title: '序号',
+                align: 'center',  //对齐方式，居中
+{#                width: '200px'  // 可以写各种样式#}
+
+            }, {
+                field: 'name',
+                title: '名称',
+                align: 'center'
+            }, {
+                field: 'price',
+                title: '价格',
+                align: 'center'
+                ,edit:{
+					type:'select',//下拉框，如果是下拉则需要设置type为select
+					//url:'user/getUser.htm',//从服务器加载
+					data:[{id:1,text:'lzx'},{id:2,text:'lsl'}],
+					valueField:'id',
+					textField:'text',
+					onSelect:function(val,rec){
+						console.log(val,rec);
+					}
+		        }
+            }, {
+                title: '操作',
+                field: 'id',
+                align: 'center',
+                formatter: function (value, row, index) {
+                    var e = '<a href="#" mce_href="#" onclick="edit(\'' + row.id + '\')">编辑</a> ';  //row.id为每行的id
+                    var d = '<a href="#" mce_href="#" onclick="del(\'' + row.id + '\')">删除</a> ';
+                    return e + d;
+                }
+            }
+            ],
+        });
+    });
+
+
+</script>
+</body>
+</html>

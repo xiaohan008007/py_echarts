@@ -1,0 +1,32 @@
+[[source]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pymysql = "*"
+pymongo = "*"
+flask = "*"
+flask-cors = "*"
+flask-sqlalchemy = "*"
+pandas = "*"
+requests = "*"
+lxml = "*"
+elasticsearch = "*"
+redis = "*"
+pytesseract = "*"
+pyecharts = "==0.5.5"
+flask-script = "*"
+logger = "*"
+wheel = "*"
+retrying = "*"
+openpyxl = "*"
+xlrd = "*"
+"bs4" = "*"
+aiohttp = "*"
+pyexecjs = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
