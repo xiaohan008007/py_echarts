@@ -9,6 +9,7 @@ from .util import douyin_stat
 import requests
 
 import time
+import pyecharts
 
 
 
@@ -39,6 +40,7 @@ app = Blueprint('douyin_api', __name__)
 root_logger = init_logger()
 mysql_client1 = mysql_client.MysqlClient(db='tts_qly_analysis')
 mysql_client2 = mysql_client.MysqlClient(db='tts_tob_qly_v2')
+mysql_client3 = mysql_client.MysqlClient(db='tts_douyin')
 
 
 url_set = {'s-bp1ab95be815ccc4.mongodb.rds.aliyuncs.com:3717'}
@@ -721,18 +723,64 @@ def post_push(uid, ctime, _from, nickname, upall):
     return json.dumps(obj)
 
 
+@app.route('/douyin/pluginHour', methods=['get'])
+def push_plugin():
+    bar = read_hour_mysql()
+    ret_html = render_template('pycharts.html',
+                               myechart=bar.render_embed(),
+                               mytitle=u"数据演示",
+                               host='/static',
+                               script_list=bar.get_js_dependencies())
+    return ret_html
 
 
+@app.route('/douyin/pluginDay', methods=['get'])
+def push_pluginday():
+    bar = read_day_mysql()
+    ret_html = render_template('pycharts.html',
+                               myechart=bar.render_embed(),
+                               mytitle=u"数据演示",
+                               host='/static',
+                               script_list=bar.get_js_dependencies())
+    return ret_html
 
+def read_hour_mysql():
+    stats = mysql_client3.find_plugin_hour()
+    installHour = stats['plugin_install']
+    pluginPv = stats['plugin_pv']
+    webPv = stats['web_pv']
+    newUser = stats['new_user']
+    rdates = stats['ctime']
 
+    bar = pyecharts.Line("小时趋势图", "数量", width=1000, height=600)
+    bar.add("插件安装数", rdates, installHour, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("插件pv", rdates, pluginPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("主站pv", rdates, webPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("新用户", rdates, newUser, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    return bar
 
+def read_day_mysql():
+    stats = mysql_client3.find_plugin_day()
+    installDay = stats['plugin_install']
+    pluginUv = stats['plugin_uv']
+    user_action = stats['user_action']
+    to_web = stats['to_web']
+    intention_user = stats['intention_user']
+    click_rate = stats['click_rate']
+    webPv = stats['web_pv']
+    pluginPv = stats['plugin_pv']
+    newUser = stats['new_user']
+    rdates = stats['ctime']
 
-
-
-
-
-
-
+    bar = pyecharts.Line("日趋势图", "数量", width=1000, height=600)
+    bar.add("插件安装数", rdates, installDay, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("插件UV", rdates, pluginUv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("插件用户行为", rdates, user_action, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("意向点击次数", rdates, to_web, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("意向点击人数", rdates, intention_user, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("意向转化率", rdates, click_rate, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    bar.add("插件pv", rdates, pluginPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
+    return bar
 
 
 
