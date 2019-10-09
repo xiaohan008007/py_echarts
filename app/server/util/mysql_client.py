@@ -25,6 +25,15 @@ config2 = {
  'database': 'tts_qly_analysis'
 }
 
+config3 = {
+ 'pool_name': 'tts_douyin_pool',
+ 'host': 'rm-bp10k71o67q5649x235950.mysql.rds.aliyuncs.com',
+ 'port': 3306,
+ 'user': 'tts_douyin',
+ 'password': 'Nafs9pwnly2AtxBc',
+ 'database': 'tts_douyin'
+}
+
 class MysqlClient(object):
 
     # init the mysql database
@@ -33,6 +42,8 @@ class MysqlClient(object):
             self.pool = ConnectionPool(**config1)
         elif db == 'tts_qly_analysis':
             self.pool = ConnectionPool(**config2)
+        elif db == 'tts_douyin':
+            self.pool = ConnectionPool(**config3)
         self.pool.connect()
 
     def find_qlypv_history(self):
@@ -41,6 +52,10 @@ class MysqlClient(object):
 
     def find_order(self):
         SQL = "select date_format(modify_time, '%Y-%m-%d') as rdate, sum(pay_amount)/100 as sum_pay, count(*) as count from t_tob_zhishu100_user_order where order_status in (2, 3, 5) and shop_id not in (11211211) and pay_amount>100 group by date_format(modify_time, '%Y-%m-%d')"
+        return self.query(SQL)
+
+    def find_web_report(self):
+        SQL = "SELECT * from douyin_web_report"
         return self.query(SQL)
 
     def query(self, sql):
