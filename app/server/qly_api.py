@@ -54,7 +54,7 @@ app = Blueprint('api', __name__)
 root_logger = init_logger()
 mysql_client1 = mysql_client.MysqlClient(db='tts_qly_analysis')
 mysql_client2 = mysql_client.MysqlClient(db='tts_tob_qly_v2')
-
+mysql_client3 = mysql_client.MysqlClient(db='tts_douyin')
 
 url_set = {'s-bp1ab95be815ccc4.mongodb.rds.aliyuncs.com:3717'}
 mongo_client1 = mongo_client.MongodbClient(url_set, "qly_keyword", username="tts_qly", password="qlyrw")
@@ -86,11 +86,14 @@ def app_0():
     #     items.append(item)
     #
     # mongo_client2.insert_1688index(items)
-    return "<h1>数据演示</h1>  <br> <a href='/one'>qly_pv</a> <br> <a href='/order'>指数99订单</a><br> <a href='/keyword?q=裤子'>关键词查询</a><br> <a href='/keyword_region?q=裤子&start=2018-10-01&end=2018-10-21'>地区关键词查询</a><br> <a href='/guess?q=连衣裙'>类目预测</a><br> <a href='/ocr'>图像识别</a><br> <a href='/static/douyin_user.html'>抖音达人打标</a>"
+    return "<h1>数据演示</h1>  <br> <a href='/one'>qly_pv</a> <br> <a href='/order'>指数99订单</a><br> <a href='/keyword?q=裤子'>关键词查询</a><br> <a href='/keyword_region?q=裤子&start=2018-10-01&end=2018-10-21'>地区关键词查询</a><br> <a href='/guess?q=连衣裙'>类目预测</a><br> <a href='/ocr'>图像识别</a><br> <a href='/static/douyin_user.html'>抖音达人打标</a> <br> <a href='/douyinweb'>抖商主站报表</a>"
 
 
 def label_formatter(params):
     return params.value + '元'
+
+def rate_formatter(params):
+    return params.value + '%'
 
 @app.route('/ocr')
 def ocr():
@@ -633,7 +636,55 @@ def check_ad():
         return 'true'
     return 'false'
 
+@app.route('/douyinweb')
+def douyinweb():
+    bar = read_web_report()
+    ret_html = render_template('pycharts.html',
+                               myechart=bar.render_embed(),
+                               mytitle=u"数据演示",
+                               host='/static',
+                               script_list=bar.get_js_dependencies())
+    return ret_html
 
+
+def read_web_report():
+    orders = mysql_client3.find_web_report()
+    brower_count = orders['brower_count']
+    visitors = orders['visitors_count']
+    registe_user_count = orders['registe_user_count']
+    login_counts = orders['login_user_count']
+    net_login_user_count = orders['net_login_user_count']
+    active_user_count = orders['active_user_count']
+    goto_buypage_count = orders['goto_buypage_count']
+    want_buy_count = orders['want_buy_count']
+    want_true_buy_count = orders['want_true_buy_count']
+    renewal_fee_count = orders['renewal_fee_count']
+    registe_retain_rate = orders['registe_retain_rate']
+    rdates = orders['rdate']
+    # for order in orders:
+    #     pays.append(int(order['sum_pay'])/100)
+    #     rdates.append(order['rdate'])
+    #     counts.append(order['count'])
+    bar = pyecharts.Line(width=1300,height=500)
+    bar.add("浏览数", rdates, brower_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
+    bar.add("访客数", rdates, visitors, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
+    bar.add("新增注册用户数", rdates, registe_user_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
+    bar.add("日登陆用户数", rdates, login_counts, mark_point=["max", "min"], mark_line=["average"],is_label_show=True, is_more_utils=True)
+    bar.add("净登陆用户", rdates, net_login_user_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
+            is_more_utils=True)
+    bar.add("日活跃用户", rdates, active_user_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
+             is_more_utils=True)
+    bar.add("去购买页人数", rdates, goto_buypage_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
+            is_more_utils=True)
+    bar.add("意向购买人数", rdates, want_buy_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
+             is_more_utils=True)
+    bar.add("购买次数", rdates, want_true_buy_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
+             is_more_utils=True)
+    bar.add("续费次数", rdates, renewal_fee_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
+            is_more_utils=True)
+    bar.add("新增注册用户留存率", rdates, registe_retain_rate, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
+            label_formatter=rate_formatter, is_more_utils=True)
+    return bar
 
 
 
