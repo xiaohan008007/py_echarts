@@ -18,6 +18,8 @@ from collections import defaultdict
 import requests
 from urllib.parse import quote
 import time
+from lxml import etree
+from aip import AipOcr
 import os
 import json
 import csv
@@ -42,14 +44,17 @@ r2 = redis.Redis(connection_pool=pool2)
 es = Elasticsearch([{'host':'es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com', 'port':9200}], http_auth=('elastic', 'PlRJ2Coek4Y6'))
 
 
-
+""" 你的 APPID AK SK """
+APP_ID = '15487434'
+API_KEY = 'HUoLvBMD8hPbTXYdkjO8QKYh'
+SECRET_KEY = 'Nmlxqu5iFhkeGKosZYB8zkWRw8Osds2N'
+client = AipOcr(APP_ID, API_KEY, SECRET_KEY)
 
 app = Blueprint('api', __name__)
 root_logger = init_logger()
 mysql_client1 = mysql_client.MysqlClient(db='tts_qly_analysis')
 mysql_client2 = mysql_client.MysqlClient(db='tts_tob_qly_v2')
 mysql_client3 = mysql_client.MysqlClient(db='tts_douyin')
-
 
 url_set = {'s-bp1ab95be815ccc4.mongodb.rds.aliyuncs.com:3717'}
 mongo_client1 = mongo_client.MongodbClient(url_set, "qly_keyword", username="tts_qly", password="qlyrw")
@@ -81,7 +86,7 @@ def app_0():
     #     items.append(item)
     #
     # mongo_client2.insert_1688index(items)
-    return "<h1>数据演示</h1>  <br> <a href='/one'>qly_pv</a> <br> <a href='/order'>指数99订单</a><br> <a href='/keyword?q=裤子'>关键词查询</a><br> <a href='/keyword_region?q=裤子&start=2018-10-01&end=2018-10-21'>地区关键词查询</a><br> <a href='/guess?q=连衣裙'>类目预测</a><br> <a href='/ocr'>图像识别</a><br> <a href='/static/douyin_user.html'>抖音达人打标</a> <br> <a href='/douyinweb'>抖商主站报表</a>"
+    return "<h1>数据演示</h1>  <br> <a href='/one'>qly_pv</a> <br> <a href='/order'>指数99订单</a><br> <a href='/keyword?q=裤子'>关键词查询</a><br> <a href='/keyword_region?q=裤子&start=2018-10-01&end=2018-10-21'>地区关键词查询</a><br> <a href='/guess?q=连衣裙'>类目预测</a><br> <a href='/ocr'>图像识别</a><br> <a href='/static/douyin_user.html'>抖音达人打标</a> <br> <a href='/douyinweb'>抖商主站报表</a><br> <a href='/douyin/pluginHour'>抖商插件报表（时）</a><br> <a href='/douyin/pluginDay'>抖商插件报表（日）</a>"
 
 
 def label_formatter(params):
@@ -151,6 +156,53 @@ def ocr_google():
     text = text.replace('\n', '<br>')
     return text
 
+@app.route('/up_ocr', methods=['post'])
+def up_ocr():
+    img = request.files.get('photo')
+    b64_photo = request.form.get('b64_photo')
+    high = request.form.get('high')
+    form = request.form.get('form')
+    merge = request.form.get('merge')
+    photo_type = request.form.get('photo_type')
+    # username = request.form.get("name")
+    # basedir = os.path.abspath(os.path.dirname(__file__))
+    path = basedir+"/photo/"
+    file_path = path + img.filename
+    img.save(file_path)
+    # print
+    # '上传头像成功，上传的用户是：' + username
+    # return render_template('index.html')
+
+    image = get_file_content(file_path)
+    # client.
+    if high and high == "1":
+        jsons = client.basicAccurate(image)
+        j_data = json.dumps(jsons)
+        # """ 调用高清文字识别, 图片参数为本地图片 """
+        return j_data
+    elif form and form == "1":
+        jsons = client.tableRecognitionAsync(image)
+        # j_data = json.dumps(jsons)
+        reqid = jsons['result'][0]['request_id']
+
+        print(reqid)
+        # print(jsons['result']['ret_msg'])
+        """ 如果有可选参数 """
+        options = {}
+        options["result_type"] = "json"
+        time.sleep(3)
+        """ 带参数调用表格识别结果 """
+        jsons = client.getTableRecognitionResult(reqid, options)
+        j_data = json.dumps(jsons)
+        # """ 调用表格文字识别, 图片参数为本地图片 """
+        return j_data
+    elif merge and merge == "1":
+        return parse_photo_batch(photo_type, path, img.filename)
+    else:
+        jsons = client.basicGeneral(image)
+        j_data = json.dumps(jsons)
+        # """ 调用通用文字识别, 图片参数为本地图片 """
+        return j_data
 
 
 
@@ -238,7 +290,35 @@ def jsonpToJson(_jsonp):
         print("原始jsonp:"+_jsonp)
         return ""
 
+@app.route('/1688')
+def index_1688():
 
+
+    param_info = request.values.to_dict()
+    if 'cat_name' in param_info:
+        cat_name = param_info['cat_name']
+    else:
+        cat_name = '半身裙'
+
+    cat_info = mongo_client2.get_cid(cat_name)
+    if cat_info is None:
+        cats = spider_1688_catinfo(cat_name)
+        catinfos = mongo_client2.get_catinfo_in(cats)
+        cat_link = "该类目不存在，可能属于以下类目：<br>"
+        for cat in catinfos:
+            cat_link += "<a href='/1688?cat_name="+cat['catname']+"'>"+cat['catname']+"</a>\t"
+            # print(cat['catname'])
+        # cats_str = '\t'.join(cats)
+        return cat_link
+    # bar = read_1688_index(cat_info['catid'], cat_name)
+    bar = read_1688_all(cat_info['catid'], cat_name)
+    # bar = read_keyword(q)
+    ret_html = render_template('pycharts.html',
+                               myechart=bar.render_embed(),
+                               mytitle=u"数据演示",
+                               host='/static',
+                               script_list=bar.get_js_dependencies())
+    return ret_html
 
 
 @app.route('/keyword_region')
@@ -266,9 +346,11 @@ def keyword_region():
 
 @app.route('/keyword')
 def keyword():
-
-
-
+    param_info = request.values.to_dict()
+    if 'q' in param_info:
+        q = param_info['q']
+    else:
+        q = '裤子'
     bar = read_keyword(q)
     ret_html = render_template('pycharts.html',
                                myechart=bar.render_embed(),
@@ -301,7 +383,21 @@ def app_1():
                                script_list=bar.get_js_dependencies())
     return ret_html
 
-
+def spider_1688_catinfo(keyword):
+    cats = []
+    encode_keyword = str(keyword.encode('GBK')).replace('\\x', '%').replace('\'', '')[1:]
+    r = requests.get('https://s.1688.com/selloffer/offer_search.htm?keywords=%s&n=y' % encode_keyword)
+    if r.status_code == 200:
+        r.encoding = r.apparent_encoding
+        # print('爬取成功！！！')
+        # print(r.text)
+        html = etree.HTML(r.text)
+        for cat_selector in html.xpath(
+                '//div[@class="s-widget-flatcat sm-widget-row sm-sn-items-control sm-sn-items-count-d fd-clr"]/div[@class="sm-widget-items fd-clr"]/ul/li'):
+            cat_name = cat_selector.xpath('a/span/text()')[0]
+            cats.append(str(cat_name))
+            # print(str(cat_name))
+    return cats
 
 
 def cats_forcast(q):
@@ -502,6 +598,21 @@ def read_mysql():
 #             print(row)
 
 
+def parse_photo_batch(photo_type, local_path, file_name):
+    im = Image.open(local_path + file_name)  # 打开图片
+    start = time.time()
+    g1, g2, g3 = photo_util.get_3column(1, im, local_path)
+    t2 = time.time()
+    print("google:"+str(t2-start))
+    g0 = photo_util.parse_first_column(photo_type, client, im, local_path)
+    print("baidu:"+str(time.time()-t2))
+    result = {}
+    result['first_column'] = g0
+    result['data'] = g1
+    jsonStr = json.dumps(result)
+
+    return jsonStr
+
 def parse_base64(str):
     str = str.replace('%2B', "+").replace('%3D', '=').replace('%2F', '/')
     imgdata =  base64.b64decode(str)
@@ -527,7 +638,6 @@ def check_ad():
 
 @app.route('/douyinweb')
 def douyinweb():
-
     param_info = request.values.to_dict()
     starttime = ''
     endtime = ''
@@ -553,8 +663,8 @@ def douyinweb():
     return ret_html
 
 
-def read_web_report(starttime,endtime):
-    orders = mysql_client3.find_web_report(starttime,endtime)
+def read_web_report():
+    orders = mysql_client3.find_web_report()
     brower_count = orders['brower_count']
     visitors = orders['visitors_count']
     registe_user_count = orders['registe_user_count']
@@ -591,5 +701,6 @@ def read_web_report(starttime,endtime):
     bar.add("新增注册用户留存率", rdates, registe_retain_rate, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
             label_formatter=rate_formatter, is_more_utils=True)
     return bar
+
 
 
