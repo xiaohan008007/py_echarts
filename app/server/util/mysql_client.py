@@ -58,6 +58,14 @@ class MysqlClient(object):
         SQL = 'SELECT * from douyin_web_report  where rdate>=' + '"' + starttime + '"' +  ' and rdate <= ' + '"' + endtime + '"'
         return self.query(SQL)
 
+    def find_plugin_hour(self):
+        SQL = "SELECT * from plugin_hour_analyse order by ctime"
+        return self.query(SQL)
+
+    def find_plugin_day(self):
+        SQL = "SELECT * from plugin_day_analyse order by ctime"
+        return self.query(SQL)
+
     def query(self, sql):
         result = []
         try:
