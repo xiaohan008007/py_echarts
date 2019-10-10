@@ -723,53 +723,251 @@ def post_push(uid, ctime, _from, nickname, upall):
     return json.dumps(obj)
 
 
-@app.route('/douyin/pluginHour', methods=['get'])
-def push_plugin():
-    bar = read_hour_mysql()
-    ret_html = render_template('pycharts.html',
+
+@app.route('/douyin/pluginPv', methods=['get'])
+def push_pluginPv():
+
+    param_info = request.values.to_dict()
+    starttime1 = ''
+    endTime1 = ''
+
+    starttime2 = ''
+    endTime2 = ''
+    if 'starttime' in param_info:
+        starttime1 = param_info['starttime'] + " 00:00:00"
+        endTime1 = param_info['starttime'] + " 23:59:59"
+    if 'endtime' in param_info:
+        starttime2 = param_info['endtime']
+        endTime2 = param_info['endtime'] + " 23:59:59"
+
+    if starttime1 == '':
+        starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
+        endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
+
+    if starttime2 == '':
+        starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
+        endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
+
+    beforeStats = mysql_client3.find_plugin_hour(starttime1,endTime1)
+    endStats = mysql_client3.find_plugin_hour(starttime2,endTime2)
+
+    bpluginPv = beforeStats['plugin_pv'].tolist()
+    for j in range(24):
+        if j > len(bpluginPv) - 1:
+            bpluginPv.append(0)
+    epluginPv = endStats['plugin_pv'].tolist()
+    for j in range(24):
+        if j > len(epluginPv) - 1:
+            epluginPv.append(0)
+
+    rdates = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+
+    bar = pyecharts.Line("插件Pv趋势图", "数量", width=1000, height=600)
+    bar.add(starttime1.split(" ")[0], rdates, bpluginPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True,
+            is_label_show=True)
+    bar.add(starttime2.split(" ")[0], rdates, epluginPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True,
+            is_label_show=True)
+
+    ret_html = render_template('douyin_plugin.html',
                                myechart=bar.render_embed(),
                                mytitle=u"数据演示",
                                host='/static',
+                               myurl='/douyin/pluginPv',
+                               script_list=bar.get_js_dependencies())
+    return ret_html
+
+
+
+@app.route('/douyin/installHour', methods=['get'])
+def push_installHour():
+    param_info = request.values.to_dict()
+    starttime1 = ''
+    endTime1 = ''
+
+    starttime2 = ''
+    endTime2 = ''
+    if 'starttime' in param_info:
+        starttime1 = param_info['starttime'] + " 00:00:00"
+        endTime1 = param_info['starttime'] + " 23:59:59"
+    if 'endtime' in param_info:
+        starttime2 = param_info['endtime'] + " 00:00:00"
+        endTime2 = param_info['endtime'] + " 23:59:59"
+
+    if starttime1 == '':
+        starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
+        endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
+
+    if starttime2 == '':
+        starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
+        endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
+
+    beforeStats = mysql_client3.find_plugin_hour(starttime1, endTime1)
+    endStats = mysql_client3.find_plugin_hour(starttime2, endTime2)
+
+    binstallHour = beforeStats['plugin_install'].tolist()
+    for j in range(24):
+        if j > len(binstallHour) - 1:
+            binstallHour.append(0)
+    einstallHour = endStats['plugin_install'].tolist()
+    for j in range(24):
+        if j > len(einstallHour) - 1:
+            einstallHour.append(0)
+
+    rdates = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+    bar = pyecharts.Line("插件安装趋势图", "数量", width=1000, height=600)
+    bar.add(starttime1.split(" ")[0], rdates, binstallHour, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True,
+            is_label_show=True)
+
+    bar.add(starttime2.split(" ")[0], rdates, einstallHour, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True,
+            is_label_show=True)
+
+    ret_html = render_template('douyin_plugin.html',
+                               myechart=bar.render_embed(),
+                               mytitle=u"数据演示",
+                               host='/static',
+                               myurl='/douyin/installHour',
+                               script_list=bar.get_js_dependencies())
+    return ret_html
+
+@app.route('/douyin/newUser', methods=['get'])
+def push_newUser():
+    param_info = request.values.to_dict()
+    starttime1 = ''
+    endTime1 = ''
+
+    starttime2 = ''
+    endTime2 = ''
+    if 'starttime' in param_info:
+        starttime1 = param_info['starttime'] + " 00:00:00"
+        endTime1 = param_info['starttime'] + " 23:59:59"
+    if 'endtime' in param_info:
+        starttime2 = param_info['endtime'] + " 00:00:00"
+        endTime2 = param_info['endtime'] + " 23:59:59"
+
+    if starttime1 == '':
+        starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
+        endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
+
+    if starttime2 == '':
+        starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
+        endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
+
+    beforeStats = mysql_client3.find_plugin_hour(starttime1, endTime1)
+    endStats = mysql_client3.find_plugin_hour(starttime2, endTime2)
+
+    bnewUser = beforeStats['new_user'].tolist()
+    for j in range(24):
+        if j > len(bnewUser) - 1:
+            bnewUser.append(0)
+    enewUser = endStats['new_user'].tolist()
+    for j in range(24):
+        if j > len(enewUser) - 1:
+            enewUser.append(0)
+
+    rdates = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+    bar = pyecharts.Line("新用户趋势图", "数量", width=1000, height=600)
+    bar.add(starttime1.split(" ")[0], rdates, bnewUser, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True,
+            is_label_show=True)
+    bar.add(starttime2.split(" ")[0], rdates, enewUser, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True,
+            is_label_show=True)
+    ret_html = render_template('douyin_plugin.html',
+                               myechart=bar.render_embed(),
+                               mytitle=u"数据演示",
+                               host='/static',
+                               myurl='/douyin/newUser',
+                               script_list=bar.get_js_dependencies())
+    return ret_html
+
+
+@app.route('/douyin/webPv', methods=['get'])
+def push_webPv():
+    param_info = request.values.to_dict()
+    starttime1 = ''
+    endTime1 = ''
+
+    starttime2 = ''
+    endTime2 = ''
+    if 'starttime' in param_info:
+        starttime1 = param_info['starttime'] + " 00:00:00"
+        endTime1 = param_info['starttime'] + " 23:59:59"
+    if 'endtime' in param_info:
+        starttime2 = param_info['endtime'] + " 00:00:00"
+        endTime2 = param_info['endtime'] + " 23:59:59"
+
+    if starttime1 == '':
+        starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
+        endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
+
+    if starttime2 == '':
+        starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
+        endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
+
+    beforeStats = mysql_client3.find_plugin_hour(starttime1, endTime1)
+    endStats = mysql_client3.find_plugin_hour(starttime2, endTime2)
+
+    bwebPv = beforeStats['web_pv'].tolist()
+    for j in range(24):
+        if j > len(bwebPv) - 1:
+            bwebPv.append(0)
+
+    ewebPv = endStats['web_pv'].tolist()
+    for i in range(24):
+        if i > len(ewebPv) - 1:
+            ewebPv.append(0)
+
+    print(ewebPv)
+
+    rdates = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+
+    bar = pyecharts.Line("主站Pv趋势图", "数量", width=1000, height=600)
+    bar.add(starttime1.split(" ")[0], rdates, bwebPv, mark_point=["max", "min"], mark_line=["average"], is_label_show=True, is_more_utils=True, connectNulls=True)
+    bar.add(starttime2.split(" ")[0], rdates, ewebPv, mark_point=["max", "min"], mark_line=["average"], is_label_show=True, is_more_utils=True, connectNulls=True)
+
+    ret_html = render_template('douyin_plugin.html',
+                               myechart=bar.render_embed(),
+                               mytitle=u"数据演示",
+                               host='/static',
+                               myurl='/douyin/webPv',
                                script_list=bar.get_js_dependencies())
     return ret_html
 
 
 @app.route('/douyin/pluginDay', methods=['get'])
 def push_pluginday():
-    bar = read_day_mysql()
-    ret_html = render_template('pycharts.html',
+
+    param_info = request.values.to_dict()
+    starttime = ''
+    endtime = ''
+    if 'starttime' in param_info:
+        starttime = param_info['starttime']
+    if 'endtime' in param_info:
+        endtime = param_info['endtime']
+
+    if starttime == '':
+        starttime = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d 00:00:00')
+
+    if endtime == '':
+        endtime = datetime.datetime.now().strftime('%Y-%m-%d 23:59:00')
+
+    bar = read_day_mysql(starttime, endtime)
+    ret_html = render_template('douyin_plugin.html',
                                myechart=bar.render_embed(),
                                mytitle=u"数据演示",
                                host='/static',
+                               myurl='/douyin/pluginDay',
                                script_list=bar.get_js_dependencies())
     return ret_html
 
-def read_hour_mysql():
-    stats = mysql_client3.find_plugin_hour()
-    installHour = stats['plugin_install']
-    pluginPv = stats['plugin_pv']
-    webPv = stats['web_pv']
-    newUser = stats['new_user']
-    rdates = stats['ctime']
 
-    bar = pyecharts.Line("小时趋势图", "数量", width=1000, height=600)
-    bar.add("插件安装数", rdates, installHour, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
-    bar.add("插件pv", rdates, pluginPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
-    bar.add("主站pv", rdates, webPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
-    bar.add("新用户", rdates, newUser, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
-    return bar
-
-def read_day_mysql():
-    stats = mysql_client3.find_plugin_day()
+def read_day_mysql(starttime, endtime):
+    stats = mysql_client3.find_plugin_day(starttime, endtime)
     installDay = stats['plugin_install']
     pluginUv = stats['plugin_uv']
     user_action = stats['user_action']
     to_web = stats['to_web']
     intention_user = stats['intention_user']
     click_rate = stats['click_rate']
-    webPv = stats['web_pv']
     pluginPv = stats['plugin_pv']
-    newUser = stats['new_user']
     rdates = stats['ctime']
 
     bar = pyecharts.Line("日趋势图", "数量", width=1000, height=600)
@@ -781,7 +979,6 @@ def read_day_mysql():
     bar.add("意向转化率", rdates, click_rate, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
     bar.add("插件pv", rdates, pluginPv, mark_point=["max", "min"], mark_line=["average"], is_more_utils=True, is_label_show=True)
     return bar
-
 
 
 def jsonpToJson(_jsonp):
