@@ -638,6 +638,7 @@ def check_ad():
 
 @app.route('/douyinweb')
 def douyinweb():
+
     param_info = request.values.to_dict()
     starttime = ''
     endtime = ''
@@ -663,8 +664,8 @@ def douyinweb():
     return ret_html
 
 
-def read_web_report():
-    orders = mysql_client3.find_web_report()
+def read_web_report(starttime,endtime):
+    orders = mysql_client3.find_web_report(starttime,endtime)
     brower_count = orders['brower_count']
     visitors = orders['visitors_count']
     registe_user_count = orders['registe_user_count']
@@ -701,6 +702,5 @@ def read_web_report():
     bar.add("新增注册用户留存率", rdates, registe_retain_rate, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,
             label_formatter=rate_formatter, is_more_utils=True)
     return bar
-
 
 
