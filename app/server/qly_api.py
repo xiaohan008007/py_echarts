@@ -666,6 +666,7 @@ def douyinweb():
 
 def read_web_report(starttime,endtime):
     orders = mysql_client3.find_web_report(starttime,endtime)
+    order_count = orders['order_count']
     brower_count = orders['brower_count']
     visitors = orders['visitors_count']
     registe_user_count = orders['registe_user_count']
@@ -683,6 +684,7 @@ def read_web_report(starttime,endtime):
     #     rdates.append(order['rdate'])
     #     counts.append(order['count'])
     bar = pyecharts.Line(width=1300,height=500)
+    bar.add("成单金额", rdates, order_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
     bar.add("浏览数", rdates, brower_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
     bar.add("访客数", rdates, visitors, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
     bar.add("新增注册用户数", rdates, registe_user_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
