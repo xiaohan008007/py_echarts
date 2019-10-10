@@ -54,16 +54,8 @@ class MysqlClient(object):
         SQL = "select date_format(modify_time, '%Y-%m-%d') as rdate, sum(pay_amount)/100 as sum_pay, count(*) as count from t_tob_zhishu100_user_order where order_status in (2, 3, 5) and shop_id not in (11211211) and pay_amount>100 group by date_format(modify_time, '%Y-%m-%d')"
         return self.query(SQL)
 
-    def find_web_report(self):
-        SQL = "SELECT * from douyin_web_report"
-        return self.query(SQL)
-
-    def find_plugin_hour(self):
-        SQL = "SELECT * from plugin_hour_analyse order by ctime"
-        return self.query(SQL)
-
-    def find_plugin_day(self):
-        SQL = "SELECT * from plugin_day_analyse order by ctime"
+    def find_web_report(self,starttime,endtime):
+        SQL = 'SELECT * from douyin_web_report  where rdate>=' + '"' + starttime + '"' +  ' and rdate <= ' + '"' + endtime + '"'
         return self.query(SQL)
 
     def query(self, sql):
