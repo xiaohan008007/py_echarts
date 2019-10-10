@@ -86,8 +86,7 @@ def app_0():
     #     items.append(item)
     #
     # mongo_client2.insert_1688index(items)
-    return "<h1>数据演示</h1>  <br> <a href='/one'>qly_pv</a> <br> <a href='/order'>指数99订单</a><br> <a href='/keyword?q=裤子'>关键词查询</a><br> <a href='/keyword_region?q=裤子&start=2018-10-01&end=2018-10-21'>地区关键词查询</a><br> <a href='/guess?q=连衣裙'>类目预测</a><br> <a href='/ocr'>图像识别</a><br> <a href='/static/douyin_user.html'>抖音达人打标</a> <br> <a href='/douyinweb'>抖商主站报表</a><br> <a href='/douyin/pluginHour'>抖商插件报表（时）</a><br> <a href='/douyin/pluginDay'>抖商插件报表（日）</a>"
-
+    return "<h1>数据演示</h1>  <br> <a href='/one'>qly_pv</a> <br> <a href='/order'>指数99订单</a><br> <a href='/keyword?q=裤子'>关键词查询</a><br> <a href='/keyword_region?q=裤子&start=2018-10-01&end=2018-10-21'>地区关键词查询</a><br> <a href='/guess?q=连衣裙'>类目预测</a><br> <a href='/ocr'>图像识别</a><br> <a href='/static/douyin_user.html'>抖音达人打标</a> <br> <a href='/douyinweb'>抖商主站报表</a><br> <a href='/douyin/webPv'>抖商主站Pv</a><br> <a href='/douyin/pluginPv'>抖商插件Pv</a><br> <a href='/douyin/newUser'>抖商新用户</a><br> <a href='/douyin/installHour'>抖商插件安装</a><br> <a href='/douyin/pluginDay'>抖商插件报表</a>"
 
 def label_formatter(params):
     return params.value + '元'
