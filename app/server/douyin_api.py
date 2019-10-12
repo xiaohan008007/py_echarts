@@ -981,6 +981,247 @@ def read_day_mysql(starttime, endtime):
     return bar
 
 
+@app.route('/douyin/allData', methods=['get'])
+def allData():
+    ret_html = render_template('douyin_data.html',
+                               mytitle=u"数据演示",
+                               host='/static',
+                               plugin=pluginData(),
+                               web=webData())
+    return ret_html
+
+def webData():
+    starttime = (datetime.datetime.now() - datetime.timedelta(days=2)).strftime('%Y-%m-%d 00:00:00')
+    endTime = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:00:00')
+    webData = mysql_client3.find_web_report(starttime, endTime)
+    webBody = []
+
+    brower_count1 = webData['brower_count'].tolist()[0]
+    brower_count2 = webData['brower_count'].tolist()[1]
+    upbrower_count = int(brower_count2) - int(brower_count1)
+    if brower_count2 == 0:
+        ratebrower_count = 0
+    else:
+        ratebrower_count = round(100 * upbrower_count / brower_count2, 2)
+
+    res1 = {'title': "浏览数", 'newCount': brower_count2, 'beforeCount': brower_count1, 'upCount': upbrower_count,
+            'rate': ratebrower_count}
+    webBody.append(res1)
+
+    visitors_count1 = webData['visitors_count'].tolist()[0]
+    visitors_count2 = webData['visitors_count'].tolist()[1]
+    upvisitors_count = int(visitors_count2) - int(visitors_count1)
+    if visitors_count2 == 0:
+        ratevisitors_count = 0
+    else:
+        ratevisitors_count =round(100 * upvisitors_count / visitors_count2, 2)
+
+    res2 = {'title': "访客数", 'newCount': visitors_count2, 'beforeCount': visitors_count1, 'upCount': upvisitors_count,
+            'rate': ratevisitors_count}
+    webBody.append(res2)
+
+    bRe = webData['registe_user_count'].tolist()[0]
+    nRe = webData['registe_user_count'].tolist()[1]
+    upRe = int(nRe) - int(bRe)
+    if nRe == 0:
+        rateupRe = 0
+    else:
+        rateupRe = round(100 * upRe / nRe, 2)
+    res3 = {'title': "新增注册用户", 'newCount': nRe, 'beforeCount': bRe, 'upCount': upRe,
+            'rate': rateupRe}
+    webBody.append(res3)
+
+    blogin = webData['login_user_count'].tolist()[0]
+    nlogin = webData['login_user_count'].tolist()[1]
+    uplogin = int(nlogin) - int(blogin)
+    if nlogin == 0:
+        ratelogin = 0
+    else:
+        ratelogin = round(100 * uplogin / nlogin, 2)
+    res4 = {'title': "日登录用户", 'newCount': nlogin, 'beforeCount': blogin, 'upCount': uplogin,
+            'rate': ratelogin}
+    webBody.append(res4)
+
+    bnet = webData['net_login_user_count'].tolist()[0]
+    nnet = webData['net_login_user_count'].tolist()[1]
+    upnet = int(nnet) - int(bnet)
+    if nnet == 0:
+        ratenet = 0
+    else:
+        ratenet = round(100 * upnet / nnet, 2)
+    res5 = {'title': "净登陆用户", 'newCount': nnet, 'beforeCount': bnet, 'upCount': upnet,
+            'rate': ratenet}
+    webBody.append(res5)
+
+    bactive = webData['active_user_count'].tolist()[0]
+    nactive = webData['active_user_count'].tolist()[1]
+    upactive = int(nactive) - int(bactive)
+    if nactive == 0:
+        rateactive = 0
+    else:
+        rateactive = round(100 * upactive / nactive, 2)
+    res6 = {'title': "日活跃用户", 'newCount': nactive, 'beforeCount': bactive, 'upCount': upactive,
+            'rate': rateactive}
+    webBody.append(res6)
+
+    bgoto = webData['goto_buypage_count'].tolist()[0]
+    ngoto = webData['goto_buypage_count'].tolist()[1]
+    upgoto = int(ngoto) - int(bgoto)
+    if ngoto == 0:
+        rategoto = 0
+    else:
+        rategoto = round(100 * upgoto / ngoto, 2)
+    res7 = {'title': "去购买页人数", 'newCount': ngoto, 'beforeCount': bgoto, 'upCount': upgoto,
+            'rate': rategoto}
+    webBody.append(res7)
+
+    bwant = webData['want_buy_count'].tolist()[0]
+    nwant = webData['want_buy_count'].tolist()[1]
+    upwant = int(nwant) - int(bwant)
+    if nwant == 0:
+        ratewant = 0
+    else:
+        ratewant = round(100 * upwant / nwant, 2)
+    res8 = {'title': "意向购买人数", 'newCount': nwant, 'beforeCount': bwant, 'upCount': upwant,
+            'rate': ratewant}
+    webBody.append(res8)
+
+    btrue = webData['want_true_buy_count'].tolist()[0]
+    ntrue = webData['want_true_buy_count'].tolist()[1]
+    uptrue = int(ntrue) - int(btrue)
+    if ntrue == 0:
+        ratetrue = 0
+    else:
+        ratetrue = round(100 * uptrue / ntrue, 2)
+    res9 = {'title': "购买次数", 'newCount': ntrue, 'beforeCount': btrue, 'upCount': uptrue,
+            'rate': ratetrue}
+    webBody.append(res9)
+
+    btrue = webData['renewal_fee_count'].tolist()[0]
+    ntrue = webData['renewal_fee_count'].tolist()[1]
+    uptrue = int(ntrue) - int(btrue)
+    if ntrue == 0:
+        ratetrue = 0
+    else:
+        ratetrue = round(100 * uptrue / ntrue, 2)
+    res10 = {'title': "续费次数", 'newCount': ntrue, 'beforeCount': btrue, 'upCount': uptrue,
+             'rate': ratetrue}
+    webBody.append(res10)
+
+    brate = webData['registe_retain_rate'].tolist()[0]
+    nrate = webData['registe_retain_rate'].tolist()[1]
+    uprate = int(nrate) - int(brate)
+    if nrate == 0:
+        raterate = 0
+    else:
+        raterate = round(100 * uprate / nrate, 2)
+    res11 = {'title': "新增注册用户留存率", 'newCount': nrate, 'beforeCount': brate, 'upCount': uprate,
+             'rate': raterate}
+    webBody.append(res11)
+
+    borderC = webData['order_count'].tolist()[0]
+    norderC = webData['order_count'].tolist()[1]
+    upOrderC = int(norderC) - int(borderC)
+    if norderC == 0:
+        rateOrderC = 0
+    else:
+        rateOrderC = round(100 * upOrderC / norderC, 2)
+    res12 = {'title': "订单金额数", 'newCount': norderC, 'beforeCount': borderC, 'upCount': upOrderC,
+             'rate': rateOrderC}
+    webBody.append(res12)
+    return webBody
+
+def pluginData():
+    starttime = (datetime.datetime.now() - datetime.timedelta(days=2)).strftime('%Y-%m-%d 00:00:00')
+    endTime = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:00:00')
+
+    pluginData = mysql_client3.find_plugin_day(starttime, endTime)
+
+    pluginBody = []
+
+    bInstall = pluginData['plugin_install'].tolist()[0]
+    nInstall = pluginData['plugin_install'].tolist()[1]
+    upInstall = int(nInstall) - int(bInstall)
+    if nInstall == 0:
+        rateInstall = 0
+    else:
+        rateInstall = round(100 * upInstall / nInstall, 2)
+    result1 = {'title':"下载人数", 'newCount': nInstall, 'beforeCount': bInstall, 'upCount':upInstall, 'rate':rateInstall}
+    pluginBody.append(result1)
+
+    bPPv = pluginData['plugin_pv'].tolist()[0]
+    nPPv = pluginData['plugin_pv'].tolist()[1]
+    upPPv = int(nPPv) - int(bPPv)
+    if nPPv == 0:
+        ratePPv = 0
+    else:
+        ratePPv = round(100 * upPPv / nPPv, 2)
+    result2 = {'title':"浏览数", 'newCount': nPPv, 'beforeCount': bPPv, 'upCount':upPPv, 'rate':ratePPv}
+    pluginBody.append(result2)
+
+    bPluginUv = pluginData['plugin_uv'].tolist()[0]
+    nPluginUv = pluginData['plugin_uv'].tolist()[1]
+    upPluginPv = int(nPluginUv) - int(bPluginUv)
+    if nPluginUv == 0:
+        ratePluginUv = 0
+    else:
+        ratePluginUv = round(100 * upPluginPv / nPluginUv, 2)
+    result3 = {'title':"访客数", 'newCount': nPluginUv, 'beforeCount': bPluginUv, 'upCount':upPluginPv, 'rate':ratePluginUv}
+    pluginBody.append(result3)
+
+    bUaction = pluginData['user_action'].tolist()[0]
+    nUaction = pluginData['user_action'].tolist()[1]
+    upUaction = int(nUaction) - int(bUaction)
+    if nInstall == 0:
+        rateUaction = 0
+    else:
+        rateUaction = round(100 * upUaction / nUaction, 2)
+    result4 = {'title':"使用行为发生人数", 'newCount': nUaction, 'beforeCount': bUaction, 'upCount':upUaction, 'rate':rateUaction}
+    pluginBody.append(result4)
+
+    bToweb = pluginData['to_web'].tolist()[0]
+    nToweb = pluginData['to_web'].tolist()[1]
+    upToweb = int(nToweb) - int(bToweb)
+    if nToweb == 0:
+        rateToweb = 0
+    else:
+        rateToweb = round(100 * upToweb / nToweb, 2)
+    result5 = {'title':"主站意向点击次数", 'newCount': nToweb, 'beforeCount': bToweb, 'upCount':upToweb, 'rate':rateToweb}
+    pluginBody.append(result5)
+
+    bIntention = pluginData['intention_user'].tolist()[0]
+    nIntention = pluginData['intention_user'].tolist()[1]
+    upIntention = int(nIntention) - int(bIntention)
+    if nIntention == 0:
+        rateIntention = 0
+    else:
+        rateIntention = round(100 * upIntention / nIntention, 2)
+    result6 = {'title':"主站意向点击人数", 'newCount': nIntention, 'beforeCount': bIntention, 'upCount':upIntention, 'rate':rateIntention}
+    pluginBody.append(result6)
+
+    bClick = pluginData['click_rate'].tolist()[0]
+    nClick = pluginData['click_rate'].tolist()[1]
+    upClick = int(nClick) - int(bClick)
+    if nClick == 0:
+        rateClick = 0
+    else:
+        rateClick = round(100 * upClick / nClick, 2)
+    result7 = {'title':"主站意向点击转化率", 'newCount': nClick, 'beforeCount': bClick, 'upCount':upClick, 'rate':rateClick}
+    pluginBody.append(result7)
+
+    return pluginBody
+
+    # bNew = pluginData['new_user'].tolist()[0]
+    # nNew = pluginData['new_user'].tolist()[1]
+    # upnew = int(nNew) - int(bNew)
+    # if nNew == 0:
+    #     rateNew = 0
+    # else:
+    #     rateNew = 100 * upnew / nNew
+
+
+
+
 def jsonpToJson(_jsonp):
     if _jsonp.startswith('b'):
         data_len = len(_jsonp)
