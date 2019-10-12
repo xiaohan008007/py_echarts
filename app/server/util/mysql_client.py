@@ -6,7 +6,7 @@ from logger import logger
 
 import pandas as pd
 from pymysqlpool import ConnectionPool
-
+import datetime
 config1 = {
  'pool_name': 'qly_v2_pool',
  'host': 'rm-bp10k71o67q5649x235950.mysql.rds.aliyuncs.com',
@@ -64,6 +64,11 @@ class MysqlClient(object):
 
     def find_plugin_day(self, starttime, endtime):
         SQL = 'SELECT * from plugin_day_analyse where ctime >=' + '"' + starttime + '"' + ' and ctime <= ' + '"' + endtime + '"' + ' order by ctime'
+        return self.query(SQL)
+
+    def get_today_order_status(self):
+        time_str = datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")
+        SQL = 'SELECT SUM(pay_amount) as total_count from doushop_user_order where order_status =2 and create_time > ' + '"' + time_str + '"'
         return self.query(SQL)
 
     def query(self, sql):
