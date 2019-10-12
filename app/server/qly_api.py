@@ -665,25 +665,64 @@ def douyinweb():
 
 def read_web_report(starttime,endtime):
     orders = mysql_client3.find_web_report(starttime,endtime)
-    order_count = orders['order_count']
-    brower_count = orders['brower_count']
-    visitors = orders['visitors_count']
-    registe_user_count = orders['registe_user_count']
-    login_counts = orders['login_user_count']
-    net_login_user_count = orders['net_login_user_count']
-    active_user_count = orders['active_user_count']
-    goto_buypage_count = orders['goto_buypage_count']
-    want_buy_count = orders['want_buy_count']
-    want_true_buy_count = orders['want_true_buy_count']
-    renewal_fee_count = orders['renewal_fee_count']
-    registe_retain_rate = orders['registe_retain_rate']
-    rdates = orders['rdate']
+    today_order= mysql_client3.get_today_order_status()
+    today_order_list = today_order['total_count'].tolist()
+    if today_order_list[0] == None:
+        today_order_list[0] = 0
+    else:
+        today_order_list[0] = today_order_list[0] / 100
+
+    order_count = orders['order_count'].tolist()
+    order_count.append(today_order_list[0])
+    brower_count = orders['brower_count'].tolist()
+    brower_count.append(None)
+
+    visitors = orders['visitors_count'].tolist()
+    visitors.append(None)
+
+    registe_user_count = orders['registe_user_count'].tolist()
+    registe_user_count.append(None)
+
+    login_counts = orders['login_user_count'].tolist()
+    login_counts.append(None)
+
+    net_login_user_count = orders['net_login_user_count'].tolist()
+    net_login_user_count.append(None)
+
+    active_user_count = orders['active_user_count'].tolist()
+    active_user_count.append(None)
+
+    goto_buypage_count = orders['goto_buypage_count'].tolist()
+    goto_buypage_count.append(None)
+
+    want_buy_count = orders['want_buy_count'].tolist()
+    want_buy_count.append(None)
+
+    want_true_buy_count = orders['want_true_buy_count'].tolist()
+    want_true_buy_count.append(None)
+
+    renewal_fee_count = orders['renewal_fee_count'].tolist()
+    renewal_fee_count.append(None)
+
+    registe_retain_rate = orders['registe_retain_rate'].tolist()
+    registe_retain_rate.append(None)
+
+    rdates = orders['rdate'].tolist()
+    rdates.append(datetime.datetime.now().date())
+
+    order_rdatelist = orders['rdate'].tolist()
+    order_rdatelist.append( datetime.datetime.now().date() )
+
+
+
     # for order in orders:
     #     pays.append(int(order['sum_pay'])/100)
     #     rdates.append(order['rdate'])
     #     counts.append(order['count'])
     bar = pyecharts.Line(width=1300,height=500)
-    bar.add("成单金额", rdates, order_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
+    print(brower_count)
+    print(order_rdatelist)
+    bar.add("成单金额", order_rdatelist, order_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True ,is_legend_show=False)
     bar.add("浏览数", rdates, brower_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
     bar.add("访客数", rdates, visitors, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
     bar.add("新增注册用户数", rdates, registe_user_count, mark_point=["max", "min"], mark_line=["average"], is_label_show=True,  is_more_utils=True)
