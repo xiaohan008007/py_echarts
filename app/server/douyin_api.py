@@ -723,7 +723,6 @@ def post_push(uid, ctime, _from, nickname, upall):
     return json.dumps(obj)
 
 
-
 @app.route('/douyin/pluginPv', methods=['get'])
 def push_pluginPv():
 
@@ -740,11 +739,11 @@ def push_pluginPv():
         starttime2 = param_info['endtime']
         endTime2 = param_info['endtime'] + " 23:59:59"
 
-    if starttime1 == '':
+    if starttime1 == '' or len(starttime1) < 10:
         starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
         endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
 
-    if starttime2 == '':
+    if starttime2 == '' or len(starttime2) < 10:
         starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
         endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
 
@@ -793,11 +792,11 @@ def push_installHour():
         starttime2 = param_info['endtime'] + " 00:00:00"
         endTime2 = param_info['endtime'] + " 23:59:59"
 
-    if starttime1 == '':
+    if starttime1 == '' or len(starttime1) < 10:
         starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
         endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
 
-    if starttime2 == '':
+    if starttime2 == '' or len(starttime2) < 10:
         starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
         endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
 
@@ -837,6 +836,7 @@ def push_newUser():
 
     starttime2 = ''
     endTime2 = ''
+
     if 'starttime' in param_info:
         starttime1 = param_info['starttime'] + " 00:00:00"
         endTime1 = param_info['starttime'] + " 23:59:59"
@@ -844,11 +844,11 @@ def push_newUser():
         starttime2 = param_info['endtime'] + " 00:00:00"
         endTime2 = param_info['endtime'] + " 23:59:59"
 
-    if starttime1 == '':
+    if starttime1 == '' or len(starttime1) < 10:
         starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
         endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
 
-    if starttime2 == '':
+    if starttime2 == '' or len(starttime2) < 10:
         starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
         endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
 
@@ -894,11 +894,11 @@ def push_webPv():
         starttime2 = param_info['endtime'] + " 00:00:00"
         endTime2 = param_info['endtime'] + " 23:59:59"
 
-    if starttime1 == '':
+    if starttime1 == '' or len(starttime1) < 10:
         starttime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
         endTime1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:59:59')
 
-    if starttime2 == '':
+    if starttime2 == '' or len(starttime2) < 10:
         starttime2 = datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')
         endTime2 = datetime.datetime.now().strftime('%Y-%m-%d 23:59:59')
 
@@ -991,147 +991,225 @@ def allData():
     return ret_html
 
 def webData():
+    weekTime1 = (datetime.datetime.now() - datetime.timedelta(days=8)).strftime('%Y-%m-%d 00:00:00')
+    weekTime2 = (datetime.datetime.now() - datetime.timedelta(days=8)).strftime('%Y-%m-%d 23:00:00')
+    weekData = mysql_client3.find_web_report(weekTime1, weekTime2)
+
     starttime = (datetime.datetime.now() - datetime.timedelta(days=2)).strftime('%Y-%m-%d 00:00:00')
     endTime = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:00:00')
     webData = mysql_client3.find_web_report(starttime, endTime)
     webBody = []
 
+    weekDatas1 = weekData['brower_count'].tolist()[0]
     brower_count1 = webData['brower_count'].tolist()[0]
     brower_count2 = webData['brower_count'].tolist()[1]
     upbrower_count = int(brower_count2) - int(brower_count1)
-    if brower_count2 == 0:
+    if brower_count1 == 0:
         ratebrower_count = 0
     else:
-        ratebrower_count = round(100 * upbrower_count / brower_count2, 2)
-
-    res1 = {'title': "浏览数", 'newCount': brower_count2, 'beforeCount': brower_count1, 'upCount': upbrower_count,
-            'rate': ratebrower_count}
+        ratebrower_count = round(100 * upbrower_count / brower_count1, 2)
+    if weekDatas1 == 0:
+        rateWeek1 = 0
+    else:
+        rateWeek1 = round(100 *(brower_count2 - weekDatas1)/weekDatas1, 2)
+    res1 = {'title': "浏览数", 'newCount': brower_count2, 'beforeCount': brower_count1, 'upCount': upbrower_count,'weekData':weekDatas1,
+            'rate': ratebrower_count,'rateWeek':rateWeek1}
     webBody.append(res1)
 
+    weekDatas2 = weekData['visitors_count'].tolist()[0]
     visitors_count1 = webData['visitors_count'].tolist()[0]
     visitors_count2 = webData['visitors_count'].tolist()[1]
     upvisitors_count = int(visitors_count2) - int(visitors_count1)
-    if visitors_count2 == 0:
+    if visitors_count1 == 0:
         ratevisitors_count = 0
     else:
-        ratevisitors_count =round(100 * upvisitors_count / visitors_count2, 2)
+        ratevisitors_count =round(100 * upvisitors_count / visitors_count1, 2)
 
-    res2 = {'title': "访客数", 'newCount': visitors_count2, 'beforeCount': visitors_count1, 'upCount': upvisitors_count,
-            'rate': ratevisitors_count}
+    if weekDatas2 == 0:
+        rateWeek2 = 0
+    else:
+        rateWeek2 = round(100 *(visitors_count2 - weekDatas2)/weekDatas2, 2)
+
+    res2 = {'title': "访客数", 'newCount': visitors_count2, 'beforeCount': visitors_count1, 'upCount': upvisitors_count,'weekData':weekDatas2,
+            'rate': ratevisitors_count,'rateWeek':rateWeek2}
     webBody.append(res2)
 
+
+    weekDatas3 = weekData['registe_user_count'].tolist()[0]
     bRe = webData['registe_user_count'].tolist()[0]
     nRe = webData['registe_user_count'].tolist()[1]
     upRe = int(nRe) - int(bRe)
-    if nRe == 0:
+    if bRe == 0:
         rateupRe = 0
     else:
-        rateupRe = round(100 * upRe / nRe, 2)
-    res3 = {'title': "新增注册用户", 'newCount': nRe, 'beforeCount': bRe, 'upCount': upRe,
-            'rate': rateupRe}
+        rateupRe = round(100 * upRe / bRe, 2)
+
+    if weekDatas3 == 0:
+        rateWeek3 = 0
+    else:
+        rateWeek3 = round(100 *(nRe - weekDatas3)/weekDatas3, 2)
+    res3 = {'title': "新增注册用户", 'newCount': nRe, 'beforeCount': bRe, 'upCount': upRe,'weekData':weekDatas3,
+            'rate': rateupRe, 'rateWeek':rateWeek3}
     webBody.append(res3)
 
+    weekDatas4 = weekData['login_user_count'].tolist()[0]
     blogin = webData['login_user_count'].tolist()[0]
     nlogin = webData['login_user_count'].tolist()[1]
     uplogin = int(nlogin) - int(blogin)
-    if nlogin == 0:
+    if blogin == 0:
         ratelogin = 0
     else:
-        ratelogin = round(100 * uplogin / nlogin, 2)
-    res4 = {'title': "日登录用户", 'newCount': nlogin, 'beforeCount': blogin, 'upCount': uplogin,
-            'rate': ratelogin}
+        ratelogin = round(100 * uplogin / blogin, 2)
+
+    if weekDatas4 == 0:
+        rateWeek4 = 0
+    else:
+        rateWeek4 = round(100 *(nlogin - weekDatas4)/weekDatas4, 2)
+    res4 = {'title': "日登录用户", 'newCount': nlogin, 'beforeCount': blogin, 'upCount': uplogin,'weekData':weekDatas4,
+            'rate': ratelogin,'rateWeek':rateWeek4}
     webBody.append(res4)
 
+    weekDatas5 = weekData['net_login_user_count'].tolist()[0]
     bnet = webData['net_login_user_count'].tolist()[0]
     nnet = webData['net_login_user_count'].tolist()[1]
     upnet = int(nnet) - int(bnet)
-    if nnet == 0:
+    if bnet == 0:
         ratenet = 0
     else:
-        ratenet = round(100 * upnet / nnet, 2)
-    res5 = {'title': "净登陆用户", 'newCount': nnet, 'beforeCount': bnet, 'upCount': upnet,
-            'rate': ratenet}
+        ratenet = round(100 * upnet / bnet, 2)
+    if weekDatas5 == 0:
+        rateWeek5 = 0
+    else:
+        rateWeek5 = round(100 *(nnet - weekDatas5)/weekDatas5, 2)
+    res5 = {'title': "净登陆用户", 'newCount': nnet, 'beforeCount': bnet, 'upCount': upnet,'weekData':weekDatas5,
+            'rate': ratenet,'rateWeek':rateWeek5}
     webBody.append(res5)
 
+
+    weekDatas6 = weekData['active_user_count'].tolist()[0]
     bactive = webData['active_user_count'].tolist()[0]
     nactive = webData['active_user_count'].tolist()[1]
     upactive = int(nactive) - int(bactive)
-    if nactive == 0:
+    if bactive == 0:
         rateactive = 0
     else:
-        rateactive = round(100 * upactive / nactive, 2)
-    res6 = {'title': "日活跃用户", 'newCount': nactive, 'beforeCount': bactive, 'upCount': upactive,
-            'rate': rateactive}
+        rateactive = round(100 * upactive / bactive, 2)
+
+    if weekDatas6 == 0:
+        rateWeek6 = 0
+    else:
+        rateWeek6 = round(100 *(nactive - weekDatas6)/weekDatas6, 2)
+    res6 = {'title': "日活跃用户", 'newCount': nactive, 'beforeCount': bactive, 'upCount': upactive,'weekData':weekDatas6,
+            'rate': rateactive,'rateWeek':rateWeek6}
     webBody.append(res6)
 
+    weekDatas7 = weekData['goto_buypage_count'].tolist()[0]
     bgoto = webData['goto_buypage_count'].tolist()[0]
     ngoto = webData['goto_buypage_count'].tolist()[1]
     upgoto = int(ngoto) - int(bgoto)
-    if ngoto == 0:
+    if bgoto == 0:
         rategoto = 0
     else:
-        rategoto = round(100 * upgoto / ngoto, 2)
-    res7 = {'title': "去购买页人数", 'newCount': ngoto, 'beforeCount': bgoto, 'upCount': upgoto,
-            'rate': rategoto}
+        rategoto = round(100 * upgoto / bgoto, 2)
+    if weekDatas7 == 0:
+        rateWeek7 = 0
+    else:
+        rateWeek7 = round(100 *(ngoto - weekDatas7)/weekDatas7, 2)
+    res7 = {'title': "去购买页人数", 'newCount': ngoto, 'beforeCount': bgoto, 'upCount': upgoto,'weekData':weekDatas7,
+            'rate': rategoto,'rateWeek':rateWeek7}
     webBody.append(res7)
 
+    weekDatas8 = weekData['want_buy_count'].tolist()[0]
     bwant = webData['want_buy_count'].tolist()[0]
     nwant = webData['want_buy_count'].tolist()[1]
     upwant = int(nwant) - int(bwant)
-    if nwant == 0:
+    if bwant == 0:
         ratewant = 0
     else:
-        ratewant = round(100 * upwant / nwant, 2)
-    res8 = {'title': "意向购买人数", 'newCount': nwant, 'beforeCount': bwant, 'upCount': upwant,
-            'rate': ratewant}
+        ratewant = round(100 * upwant / bwant, 2)
+    if weekDatas8 == 0:
+        rateWeek8 = 0
+    else:
+        rateWeek8 = round(100 *(nwant - weekDatas8)/weekDatas8, 2)
+    res8 = {'title': "意向购买人数", 'newCount': nwant, 'beforeCount': bwant, 'upCount': upwant,'weekData':weekDatas8,
+            'rate': ratewant,'rateWeek':rateWeek8}
     webBody.append(res8)
 
+
+    weekDatas9 = weekData['want_true_buy_count'].tolist()[0]
     btrue = webData['want_true_buy_count'].tolist()[0]
     ntrue = webData['want_true_buy_count'].tolist()[1]
     uptrue = int(ntrue) - int(btrue)
-    if ntrue == 0:
+    if btrue == 0:
         ratetrue = 0
     else:
-        ratetrue = round(100 * uptrue / ntrue, 2)
-    res9 = {'title': "购买次数", 'newCount': ntrue, 'beforeCount': btrue, 'upCount': uptrue,
-            'rate': ratetrue}
+        ratetrue = round(100 * uptrue / btrue, 2)
+    if weekDatas9 == 0:
+        rateWeek9 = 0
+    else:
+        rateWeek9 = round(100 *(ntrue - weekDatas9)/weekDatas9, 2)
+    res9 = {'title': "购买次数", 'newCount': ntrue, 'beforeCount': btrue, 'upCount': uptrue,'weekData':weekDatas9,
+            'rate': ratetrue,'rateWeek':rateWeek9}
     webBody.append(res9)
 
-    btrue = webData['renewal_fee_count'].tolist()[0]
-    ntrue = webData['renewal_fee_count'].tolist()[1]
-    uptrue = int(ntrue) - int(btrue)
-    if ntrue == 0:
-        ratetrue = 0
+    weekDatas10 = weekData['renewal_fee_count'].tolist()[0]
+    bfree = webData['renewal_fee_count'].tolist()[0]
+    nfree = webData['renewal_fee_count'].tolist()[1]
+    upfree = int(nfree) - int(bfree)
+    if bfree == 0:
+        ratefree = 0
     else:
-        ratetrue = round(100 * uptrue / ntrue, 2)
-    res10 = {'title': "续费次数", 'newCount': ntrue, 'beforeCount': btrue, 'upCount': uptrue,
-             'rate': ratetrue}
+        ratefree = round(100 * upfree / bfree, 2)
+    if weekDatas10 == 0:
+        rateWeek10 = 0
+    else:
+        rateWeek10 = round(100 *(nfree - weekDatas10)/weekDatas10, 2)
+    res10 = {'title': "续费次数", 'newCount': ntrue, 'beforeCount': btrue, 'upCount': uptrue,'weekData':weekDatas10,
+             'rate': ratefree,'rateWeek':rateWeek10}
     webBody.append(res10)
 
+    weekDatas11 = weekData['registe_retain_rate'].tolist()[0]
     brate = webData['registe_retain_rate'].tolist()[0]
     nrate = webData['registe_retain_rate'].tolist()[1]
     uprate = int(nrate) - int(brate)
-    if nrate == 0:
+    if brate == 0:
         raterate = 0
     else:
-        raterate = round(100 * uprate / nrate, 2)
-    res11 = {'title': "新增注册用户留存率", 'newCount': nrate, 'beforeCount': brate, 'upCount': uprate,
-             'rate': raterate}
+        raterate = round(100 * uprate / brate, 2)
+    if weekDatas11 == 0:
+        rateWeek11 = 0
+    else:
+        rateWeek11 = round(100 *(nrate - weekDatas11)/weekDatas11, 2)
+    res11 = {'title': "新增注册用户留存率", 'newCount': nrate, 'beforeCount': brate, 'upCount': uprate,'weekData':weekDatas11,
+             'rate': raterate,'rateWeek':rateWeek11}
     webBody.append(res11)
 
+
+    weekDatas12 = weekData['order_count'].tolist()[0]
     borderC = webData['order_count'].tolist()[0]
     norderC = webData['order_count'].tolist()[1]
     upOrderC = int(norderC) - int(borderC)
-    if norderC == 0:
+    if borderC == 0:
         rateOrderC = 0
     else:
-        rateOrderC = round(100 * upOrderC / norderC, 2)
-    res12 = {'title': "订单金额数", 'newCount': norderC, 'beforeCount': borderC, 'upCount': upOrderC,
-             'rate': rateOrderC}
+        rateOrderC = round(100 * upOrderC / borderC, 2)
+    if weekDatas12 == 0:
+        rateWeek12 = 0
+    else:
+        rateWeek12 = round(100 *(norderC - weekDatas12)/weekDatas12, 2)
+    res12 = {'title': "订单金额数", 'newCount': norderC, 'beforeCount': borderC, 'upCount': upOrderC,'weekData':weekDatas12,
+             'rate': rateOrderC,'rateWeek':rateWeek12}
     webBody.append(res12)
     return webBody
 
+
 def pluginData():
+
+    weekTime1 = (datetime.datetime.now() - datetime.timedelta(days=8)).strftime('%Y-%m-%d 00:00:00')
+    weekTime2 = (datetime.datetime.now() - datetime.timedelta(days=8)).strftime('%Y-%m-%d 23:00:00')
+    weekData = mysql_client3.find_plugin_day(weekTime1, weekTime2)
+    print(weekData)
+
     starttime = (datetime.datetime.now() - datetime.timedelta(days=2)).strftime('%Y-%m-%d 00:00:00')
     endTime = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 23:00:00')
 
@@ -1139,74 +1217,116 @@ def pluginData():
 
     pluginBody = []
 
+    weekDatas1 = weekData['plugin_install'].tolist()[0]
     bInstall = pluginData['plugin_install'].tolist()[0]
     nInstall = pluginData['plugin_install'].tolist()[1]
     upInstall = int(nInstall) - int(bInstall)
-    if nInstall == 0:
+    if bInstall == 0:
         rateInstall = 0
     else:
-        rateInstall = round(100 * upInstall / nInstall, 2)
-    result1 = {'title':"下载人数", 'newCount': nInstall, 'beforeCount': bInstall, 'upCount':upInstall, 'rate':rateInstall}
+        rateInstall = round(100 * upInstall / bInstall, 2)
+    if weekDatas1 == 0:
+        rateWeek1 = 0
+    else:
+        rateWeek1 = round(100 *(nInstall - weekDatas1)/weekDatas1, 2)
+    result1 = {'title':"下载人数", 'newCount': nInstall, 'beforeCount': bInstall, 'upCount':upInstall, 'weekData':weekDatas1,
+               'rate':rateInstall, 'rateWeek':rateWeek1}
     pluginBody.append(result1)
 
+    weekDatas2 = weekData['plugin_pv'].tolist()[0]
     bPPv = pluginData['plugin_pv'].tolist()[0]
     nPPv = pluginData['plugin_pv'].tolist()[1]
     upPPv = int(nPPv) - int(bPPv)
-    if nPPv == 0:
+    if bPPv == 0:
         ratePPv = 0
     else:
-        ratePPv = round(100 * upPPv / nPPv, 2)
-    result2 = {'title':"浏览数", 'newCount': nPPv, 'beforeCount': bPPv, 'upCount':upPPv, 'rate':ratePPv}
+        ratePPv = round(100 * upPPv / bPPv, 2)
+    if weekDatas2 == 0:
+        rateWeek2 = 0
+    else:
+        rateWeek2 = round(100 *(nPPv - weekDatas2)/weekDatas2, 2)
+    result2 = {'title':"浏览数", 'newCount': nPPv, 'beforeCount': bPPv, 'upCount':upPPv,'weekData':weekDatas2,
+               'rate':ratePPv,'rateWeek':rateWeek2}
     pluginBody.append(result2)
 
+    weekDatas3 = weekData['plugin_uv'].tolist()[0]
     bPluginUv = pluginData['plugin_uv'].tolist()[0]
     nPluginUv = pluginData['plugin_uv'].tolist()[1]
     upPluginPv = int(nPluginUv) - int(bPluginUv)
-    if nPluginUv == 0:
+    if bPluginUv == 0:
         ratePluginUv = 0
     else:
-        ratePluginUv = round(100 * upPluginPv / nPluginUv, 2)
-    result3 = {'title':"访客数", 'newCount': nPluginUv, 'beforeCount': bPluginUv, 'upCount':upPluginPv, 'rate':ratePluginUv}
+        ratePluginUv = round(100 * upPluginPv / bPluginUv, 2)
+    if weekDatas3 == 0:
+        rateWeek3 = 0
+    else:
+        rateWeek3 = round(100 * (nPluginUv - weekDatas3) / weekDatas3, 2)
+    result3 = {'title':"访客数", 'newCount': nPluginUv, 'beforeCount': bPluginUv, 'upCount':upPluginPv, 'weekData':weekDatas3,
+               'rate':ratePluginUv,'rateWeek':rateWeek3}
     pluginBody.append(result3)
 
+    weekDatas4 = weekData['user_action'].tolist()[0]
     bUaction = pluginData['user_action'].tolist()[0]
     nUaction = pluginData['user_action'].tolist()[1]
     upUaction = int(nUaction) - int(bUaction)
-    if nInstall == 0:
+    if bUaction == 0:
         rateUaction = 0
     else:
-        rateUaction = round(100 * upUaction / nUaction, 2)
-    result4 = {'title':"使用行为发生人数", 'newCount': nUaction, 'beforeCount': bUaction, 'upCount':upUaction, 'rate':rateUaction}
+        rateUaction = round(100 * upUaction / bUaction, 2)
+    if weekDatas4 == 0:
+        rateWeek4 = 0
+    else:
+        rateWeek4 = round(100 * (nUaction - weekDatas4) / weekDatas4, 2)
+    result4 = {'title':"使用行为发生人数", 'newCount': nUaction, 'beforeCount': bUaction, 'upCount':upUaction, 'weekData':weekDatas4,
+               'rate':rateUaction,'rateWeek':rateWeek4}
     pluginBody.append(result4)
 
+    weekDatas5 = weekData['to_web'].tolist()[0]
     bToweb = pluginData['to_web'].tolist()[0]
     nToweb = pluginData['to_web'].tolist()[1]
     upToweb = int(nToweb) - int(bToweb)
-    if nToweb == 0:
+    if bToweb == 0:
         rateToweb = 0
     else:
-        rateToweb = round(100 * upToweb / nToweb, 2)
-    result5 = {'title':"主站意向点击次数", 'newCount': nToweb, 'beforeCount': bToweb, 'upCount':upToweb, 'rate':rateToweb}
+        rateToweb = round(100 * upToweb / bToweb, 2)
+    if weekDatas5 == 0:
+        rateWeek5 = 0
+    else:
+        rateWeek5 = round(100 * (nToweb - weekDatas5) / weekDatas5, 2)
+    result5 = {'title':"主站意向点击次数", 'newCount': nToweb, 'beforeCount': bToweb, 'upCount':upToweb, 'weekData':weekDatas5,
+               'rate':rateToweb,'rateWeek':rateWeek5}
     pluginBody.append(result5)
 
+    weekDatas6 = weekData['intention_user'].tolist()[0]
     bIntention = pluginData['intention_user'].tolist()[0]
     nIntention = pluginData['intention_user'].tolist()[1]
     upIntention = int(nIntention) - int(bIntention)
-    if nIntention == 0:
+    if bIntention == 0:
         rateIntention = 0
     else:
-        rateIntention = round(100 * upIntention / nIntention, 2)
-    result6 = {'title':"主站意向点击人数", 'newCount': nIntention, 'beforeCount': bIntention, 'upCount':upIntention, 'rate':rateIntention}
+        rateIntention = round(100 * upIntention / bIntention, 2)
+    if weekDatas6 == 0:
+        rateWeek6 = 0
+    else:
+        rateWeek6 = round(100 * (nIntention - weekDatas6) / weekDatas6, 2)
+    result6 = {'title':"主站意向点击人数", 'newCount': nIntention, 'beforeCount': bIntention, 'upCount':upIntention,'weekData':weekDatas6,
+               'rate':rateIntention,'rateWeek':rateWeek6}
     pluginBody.append(result6)
 
+    weekDatas7 = weekData['click_rate'].tolist()[0]
     bClick = pluginData['click_rate'].tolist()[0]
     nClick = pluginData['click_rate'].tolist()[1]
     upClick = int(nClick) - int(bClick)
-    if nClick == 0:
+    if bClick == 0:
         rateClick = 0
     else:
-        rateClick = round(100 * upClick / nClick, 2)
-    result7 = {'title':"主站意向点击转化率", 'newCount': nClick, 'beforeCount': bClick, 'upCount':upClick, 'rate':rateClick}
+        rateClick = round(100 * upClick / bClick, 2)
+    if weekDatas7 == 0:
+        rateWeek7 = 0
+    else:
+        rateWeek7 = round(100 * (nClick - weekDatas7) / weekDatas7, 2)
+    result7 = {'title':"主站意向点击转化率", 'newCount': nClick, 'beforeCount': bClick, 'upCount':upClick, 'weekData':weekDatas7,
+               'rate':rateClick,'rateWeek':rateWeek7}
     pluginBody.append(result7)
 
     return pluginBody

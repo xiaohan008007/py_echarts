@@ -16,6 +16,8 @@
     <td>前日数量</td>
     <td>昨日新增</td>
     <td>昨日增长率(%) </td>
+    <td>上周同期（昨日）数量</td>
+    <td>上周同比(%)</td>
 </tr>
 <tr>
   <th rowspan="8">插件</th>
@@ -27,7 +29,17 @@
           <td>{{pluginData.newCount}}</td>
           <td>{{pluginData.beforeCount}}</td>
           <td>{{pluginData.upCount}}</td>
-          <td>{{pluginData.rate}}</td>
+              {% if pluginData.rate > 0 %}
+                <td style="color:red">{{pluginData.rate}}</td>
+            {% else %}
+                <td style="color:green">{{pluginData.rate}}</td>
+            {% endif %}
+            <td>{{pluginData.weekData}}</td>
+            {% if pluginData.rateWeek > 0 %}
+                <td style="color:red">{{pluginData.rateWeek}}</td>
+            {% else %}
+                <td style="color:green">{{pluginData.rateWeek}}</td>
+            {% endif %}
         </tr>
     {% endfor%}
 
@@ -40,7 +52,17 @@
         <td>{{webData.newCount}}</td>
         <td>{{webData.beforeCount}}</td>
         <td>{{webData.upCount}}</td>
-        <td>{{webData.rate}}</td>
+            {% if webData.rate > 0 %}
+                <td style="color:red">{{webData.rate}}</td>
+            {% else %}
+                <td style="color:green">{{webData.rate}}</td>
+            {% endif %}
+        <td>{{webData.weekData}}</td>
+            {% if webData.rateWeek > 0 %}
+                <td style="color:red">{{webData.rateWeek}}</td>
+            {% else %}
+                <td style="color:green">{{webData.rateWeek}}</td>
+            {% endif %}
         </tr>
     {% endfor%}
 </table>
