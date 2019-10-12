@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta charset="UTF-8">
+</head>
+
+<body>
+<h4 align="center">每日插件/抖商主站数据统计</h4>
+<table border="1" cellpadding="6" width="1300" align="center">
+<tr align='center'>
+  <th>  </th>
+  <td>指标</td>
+    <td>昨日数量</td>
+    <td>前日数量</td>
+    <td>昨日新增</td>
+    <td>昨日增长率(%) </td>
+</tr>
+<tr>
+  <th rowspan="8">插件</th>
+</tr>
+
+    {% for pluginData in plugin %}
+        <tr align='center'>
+          <td>{{pluginData.title}}</td>
+          <td>{{pluginData.newCount}}</td>
+          <td>{{pluginData.beforeCount}}</td>
+          <td>{{pluginData.upCount}}</td>
+          <td>{{pluginData.rate}}</td>
+        </tr>
+    {% endfor%}
+
+<tr>
+	<th rowspan="13">插件</th>
+</tr>
+     {% for webData in web %}
+        <tr align='center'>
+        <td>{{webData.title}}</td>
+        <td>{{webData.newCount}}</td>
+        <td>{{webData.beforeCount}}</td>
+        <td>{{webData.upCount}}</td>
+        <td>{{webData.rate}}</td>
+        </tr>
+    {% endfor%}
+</table>
+</body>
+
+</html>
