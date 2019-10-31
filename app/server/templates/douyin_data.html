@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta charset="UTF-8">
+</head>
+
+<body>
+<h4 align="center">每日插件/抖商主站数据统计</h4>
+<table border="1" cellpadding="6" width="1300" align="center">
+<tr align='center'>
+  <th>  </th>
+  <td>指标</td>
+    <td>昨日数量</td>
+    <td>前日数量</td>
+    <td>昨日新增</td>
+    <td>昨日增长率(%) </td>
+    <td>上周同期（昨日）数量</td>
+    <td>上周同比(%)</td>
+</tr>
+<tr>
+  <th rowspan="8">插件</th>
+</tr>
+
+    {% for pluginData in plugin %}
+        <tr align='center'>
+          <td>{{pluginData.title}}</td>
+          <td>{{pluginData.newCount}}</td>
+          <td>{{pluginData.beforeCount}}</td>
+          <td>{{pluginData.upCount}}</td>
+              {% if pluginData.rate > 0 %}
+                <td style="color:red">{{pluginData.rate}}</td>
+            {% else %}
+                <td style="color:green">{{pluginData.rate}}</td>
+            {% endif %}
+            <td>{{pluginData.weekData}}</td>
+            {% if pluginData.rateWeek > 0 %}
+                <td style="color:red">{{pluginData.rateWeek}}</td>
+            {% else %}
+                <td style="color:green">{{pluginData.rateWeek}}</td>
+            {% endif %}
+        </tr>
+    {% endfor%}
+
+<tr>
+	<th rowspan="13">插件</th>
+</tr>
+     {% for webData in web %}
+        <tr align='center'>
+        <td>{{webData.title}}</td>
+        <td>{{webData.newCount}}</td>
+        <td>{{webData.beforeCount}}</td>
+        <td>{{webData.upCount}}</td>
+            {% if webData.rate > 0 %}
+                <td style="color:red">{{webData.rate}}</td>
+            {% else %}
+                <td style="color:green">{{webData.rate}}</td>
+            {% endif %}
+        <td>{{webData.weekData}}</td>
+            {% if webData.rateWeek > 0 %}
+                <td style="color:red">{{webData.rateWeek}}</td>
+            {% else %}
+                <td style="color:green">{{webData.rateWeek}}</td>
+            {% endif %}
+        </tr>
+    {% endfor%}
+</table>
+</body>
+
+</html>
