@@ -21,8 +21,7 @@ from login_taobao import UsernameLogin
 
 # 关闭警告
 requests.packages.urllib3.disable_warnings()
-# 登录与爬取需使用同一个Session对象
-req_session = requests.Session()
+
 
 # 代理ip，网上搜一个，猪哥使用的是 站大爷：http://ip.zdaye.com/dayProxy.html
 # 尽量使用最新的，可能某些ip不能使用，多试几个。后期可以考虑做一个ip池
@@ -35,14 +34,22 @@ headers = {
     'referer': 'https://www.taobao.com/',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 }
+# 请求头
+headers2 = {
+
+    'referer': 'https://i.taobao.com/my_taobao.htm',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+}
 
 class GoodsSpider:
 
-    def __init__(self, q, spider_max_page, goods_path):
+    def __init__(self, q, spider_max_page, goods_path, req_session):
         self.ctx = execjs.compile(token_util.get_js())
         self.q = q
         self.spider_max_page = spider_max_page
         self.goods_path = goods_path
+        self.req_session = req_session
+
         # 超时
         self.timeout = 15
         self.goods_list = []
@@ -54,8 +61,9 @@ class GoodsSpider:
         ua = ua = '120#bX1bS97HYSI5d/CutI8aaMpobIGq7PBsCxewdp4g09y60DEjOiwri+4JHVV7HLznzf25kK4goCcbIkIjxo6mXgc+PQ1eE4RYyUz7cAx1q0uUJnXpYgHQHPxlEcHRZWmUiHoHYi/2mNjzFopy0qoAqXsLlR92Ov47Doknih1dJkDLdXvfHA7Jtb1eZpXO9H4viChNYxS0Q4s2wsCKwoaPZolxHG2GebKY3YHhX/VoXhFLLoQ0Zlv11bWSUtT1Vwfdme17Eu7VZVcEKlWl8OwuHDmo2CTE3N0Mac231rJAE1eoDMe5ePTe0ENvXV6r9W2Vqh6W3a1AeFb10rTdFVhH0ZZkM1fGsQ3NGg7KXPM3uAfHIjNtsrgcoI1BnR0QnjJZYRJeHOTPInF+Zg1ZSnc1NxYYUdX9ck72A/h3eUz7Wfm5f+/BPorD6dXJI8YOTy8AK6YX8uNV9Q5R+eRvzPzdb8IqVDV2Yv7nHOdxdDOEq+M0tteQFnWmx1pxPXpbg5MvXqMMGIYbTl9PNWcMbbAt7aPyyEIbbdPn0IUQbOdBJXbVSxtkOyzBzUetJI2S7MOS4SY1tNbmLWaGL8bdsW4lLiT4gJ1cLxYIUfTTERN8tWGngOPQR/Edp991uyVT/okRwEoC9vkPFy4S7ok4QuEfRpLjCXU7guNyzLR6XR5XSfq3OFcgoiDSFnM09lMXk5XXKB8IAB80RXPrplmDRxXBYZNB6ff0iOHJWDFYAirVJVj49BAG4bp8pOusOSL6O8xBlozowzDAN2l+mdxlpm5qJycp9EIqyhiC+xUM16MlDLH2hMyZqriEadwjGH10/3yvS/ARUt0+UJJSOkCyFw7LOedAlObUk6ikRYk3iuUHZOKvn3R/m3y5gQcmhnGpFKB+eEog1gN+48JH6HaGDFsV/W2RuBlxpamYDvHQhKEuufLSRnX6s89BMkB9NzOzuH+WM65/tDgM3fIg+yW7o658FbQ1fFVNnuLIqCWW0xrv14aBkRyM0PjscLkoP5Aex6FOMnkmLq9aoxzkSThV70Zg+1Ss9gfBHwKzh8oL50Cm6uh2O97JwRAmwEVnu2ch8BVVa6JTEgzGrF8WSVG4iVgl1aB1Hfu5u7BW5jJiYhGE/vaQwyKRdJlUAILAC7ZhQp6fr8o3IbOvCGbjDlJBx52w+e88SX9RlrA='
         # 加密后的密码，从浏览器或抓包工具中复制，可重复使用
         TPL_password2 = '219406b145abaad2a216718694f80f95f14e4359c5c9198e5b7b9e93d8276cf5f3f71768af7445fc610a222a7de9efb716278b02cd16efa489f96bddfc446a6cb8e03ed9fbea2bcb202de5ce3cd925a4808dbb1ac03119b9bfe2459707a662dc9a967c6bacee0fb04f26ffc237b867894032e490fd6b56db444b786889f68868'
-        ul = UsernameLogin(username, ua, TPL_password2, req_session)
+        ul = UsernameLogin(username, ua, TPL_password2, self.req_session)
         ul.login()
+        self.cookies = ul._deserialization_cookies()
 
 
     @retry(stop_max_attempt_number = 1)
@@ -69,7 +77,7 @@ class GoodsSpider:
         search_url = f'https://s.taobao.com/search?initiative_id=tbindexz_20170306&ie=utf8&spm=a21bo.2017.201856-taobao-item.2&sourceId=tb.index&search_type=item&ssid=s5-e&commend=all&imgfile=&q={self.q}&suggest=history_1&_input_charset=utf-8&wq=biyunt&suggest_query=biyunt&source=suggest&bcoffset=4&p4ppushleft=%2C48&s={s}&data-key=s&data-value={s + 44}'
         # search_url = 'http://pv.sohu.com/cityjson%3Fie=utf-8'
 
-        response = req_session.get(search_url, headers=headers, proxies=proxies,
+        response = self.req_session.get(search_url, headers=headers, proxies=proxies,
                                    verify=False, timeout=self.timeout)
         # print(response.text)
         # print(response.text)
@@ -140,21 +148,41 @@ class GoodsSpider:
             time.sleep(random.randint(10, 15))
 
     def spider_taobao_address(self):
+        member_url = f'https://member1.taobao.com/member/fresh/deliver_address.htm'
+        # search_url = 'http://pv.sohu.com/cityjson%3Fie=utf-8'
+        print(self.cookies)
+        res = self.req_session.get(member_url, headers=headers2, proxies=proxies,
+                                   verify=False, timeout=self.timeout)
+        print(res.text)
         url = 'https://h5api.m.taobao.com/h5/mtop.taobao.mbis.getdeliveraddrlist/1.0/?jsv=2.4.2&api=mtop.taobao.mbis.getDeliverAddrList&v=1.0&ecode=1&needLogin=true&dataType=jsonp&type=jsonp&callback=mtopjsonp4'
         appkey = '27769795'
-        cookies = req_session.cookies
-        token = token_util.get_token(cookies)
+
+        token = token_util.get_token(self.req_session.cookies)
         url = token_util.init_url('{}',  url, appkey, token, self.ctx)
-        response = req_session.get(url, headers=headers, proxies=proxies,
+        response = self.req_session.get(url, headers=headers, proxies=proxies,
                                    verify=False, timeout=self.timeout)
         print(response.text)
 
+    def spider_taobao_item_detail(self):
+        itemId = '576346852230'
+        # 请求头
+        headers2 = {
 
+            'referer': 'https://detail.tmall.com/item.htm?spm=a230r.1.14.30.443262eeXiSDxO&id=%s&cm_id=140105335569ed55e27b&abbucket=4' % itemId,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        }
+
+        url = 'https://mdskip.taobao.com/core/initItemDetail.htm?isUseInventoryCenter=false&cartEnable=true&service3C=false&isApparel=true&isSecKill=false&tmallBuySupport=true&isAreaSell=false&tryBeforeBuy=false&offlineShop=false&itemId=' +itemId+ '&showShopProm=false&isPurchaseMallPage=false&itemGmtModified=1569532195000&isRegionLevel=false&household=false&sellerPreview=false&queryMemberRight=true&addressLevel=2&isForbidBuyItem=false&callback=setMdskip&timestamp=1569553232951&isg=cBSA7sicvo5NAkl1BOCwhurza77OdIRAguPzaNbMi_5IC1L_QoQOk6Tydep6cjWd9jLB4K7K7H29-etf2aw06P1P97RN.&isg2=BBoautKjE5g7b57eJPUY8Cb1a8aQW4Ggv6ELBSST6K14l7rRDNuENeamZyOuRxa9&ref=https%3A%2F%2Fs.taobao.com%2Fsearch%3Finitiative_id%3Dtbindexz_20170306%26ie%3Dutf8%26spm%3Da21bo.2017.201856-taobao-item.2%26sourceId%3Dtb.index%26search_type%3Ditem%26ssid%3Ds5-e%26commend%3Dall%26imgfile%3D%26q%3Ddfvc%25E6%2597%2597%25E8%2588%25B0%25E5%25BA%2597%26suggest%3D0_1%26_input_charset%3Dutf-8%26wq%3Ddf%26suggest_query%3Ddf%26source%3Dsuggest'
+        response = self.req_session.get(url, headers=headers2, proxies=proxies,  verify=False, timeout=self.timeout)
+        print(response.text)
 
 if __name__ == '__main__':
     nowTime = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
     spider_max_page = 1
     goods_path = 'taobao_goods_%s.xlsx' % nowTime
-    gs = GoodsSpider('避孕套', spider_max_page, goods_path)
+    # 登录与爬取需使用同一个Session对象
+    req_session = requests.Session()
+    gs = GoodsSpider('避孕套', spider_max_page, goods_path, req_session)
     # gs.patch_spider_goods()
-    gs.spider_taobao_address()
+    # gs.spider_taobao_address()
+    gs.spider_taobao_item_detail()

@@ -179,6 +179,7 @@ class UsernameLogin:
         my_taobao_match = re.search(r'top.location.href = "(.*?)"', response.text)
         if my_taobao_match:
             print('登录淘宝成功，跳转链接：{}'.format(my_taobao_match.group(1)))
+
             self._serialization_cookies()
             return True
         else:

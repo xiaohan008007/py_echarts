@@ -19,7 +19,7 @@ def get_js():
 def get_token(cookies):
     for cookie in cookies:
         # print("%s->%s" % (cookie['name'], cookie['value']))
-        if cookie.name == '_tb_token_':
+        if cookie.name == '_m_h5_tk':
             print(cookie.value)
             token = cookie.value.split("_")[0]
     return token
