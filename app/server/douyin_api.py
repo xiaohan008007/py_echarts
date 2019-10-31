@@ -752,6 +752,7 @@ def push_pluginPv():
 
     bpluginPv = beforeStats['plugin_pv'].tolist()
     for j in range(24):
+
         if j > len(bpluginPv) - 1:
             bpluginPv.append(0)
     epluginPv = endStats['plugin_pv'].tolist()
