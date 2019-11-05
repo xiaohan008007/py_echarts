@@ -36,10 +36,10 @@ from .douyin.douyinapi_5 import DouYinApi
 import datetime
 import redis
 
-pool = redis.ConnectionPool(host='10.0.0.93', port=6379)
+pool = redis.ConnectionPool(host='192.168.3.194', port=6379)
 r = redis.Redis(connection_pool=pool)
 
-pool2 = redis.ConnectionPool(host='10.0.0.93', port=6379, db=3)
+pool2 = redis.ConnectionPool(host='192.168.3.194', port=6379, db=3)
 r2 = redis.Redis(connection_pool=pool2)
 es = Elasticsearch([{'host':'es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com', 'port':9200}], http_auth=('elastic', 'PlRJ2Coek4Y6'))
 

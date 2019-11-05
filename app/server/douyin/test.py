@@ -119,7 +119,7 @@ def get_stat_content():
 
 import redis
 if __name__ == '__main__':
-    pool2 = redis.ConnectionPool(host='10.0.0.93', port=6379, db=3)
+    pool2 = redis.ConnectionPool(host='192.168.3.194', port=6379, db=3)
     r2 = redis.Redis(connection_pool=pool2)
     print(r2.llen("douyin:uid:search:10256625736"))
     # print(hah)

@@ -2,7 +2,7 @@ import requests
 import redis
 import random
 import json
-pool = redis.ConnectionPool(host='10.0.0.93', port=6379,db=4)
+pool = redis.ConnectionPool(host='192.168.3.194', port=6379,db=4)
 
 def decryption_douyin(req_url):
     decryption_url = 'http://43.248.105.223:8999/api/douyin?token=158b3aa279684ad3b2e67a73c79a57c8&url=%s&ck=none' % req_url

@@ -10,6 +10,7 @@ import requests
 
 import time
 import pyecharts
+import codecs
 
 
 
@@ -25,11 +26,18 @@ from elasticsearch.helpers import bulk
 from .douyin.douyinapi_5 import DouYinApi
 import datetime
 import redis
+from .douyin.util import ip_proxy
+from .douyin.util import douyin_util
+from .douyin.util.proxy_exception import ProxyLoseException
+from .douyin import test_userinfo
+from .douyin import test_douyin_sign
+from .douyin import test_douyin_awemeinfo
 
-pool = redis.ConnectionPool(host='10.0.0.93', port=6379)
+
+pool = redis.ConnectionPool(host='192.168.3.194', port=6379, decode_responses=True)
 r = redis.Redis(connection_pool=pool)
 
-pool2 = redis.ConnectionPool(host='10.0.0.93', port=6379, db=3)
+pool2 = redis.ConnectionPool(host='192.168.3.194', port=6379, db=3)
 r2 = redis.Redis(connection_pool=pool2)
 es = Elasticsearch([{'host':'es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com', 'port':9200}], http_auth=('elastic', 'PlRJ2Coek4Y6'))
 
@@ -47,16 +55,81 @@ url_set = {'s-bp1ab95be815ccc4.mongodb.rds.aliyuncs.com:3717'}
 mongo_client1 = mongo_client.MongodbClient(url_set, "qly_keyword", username="tts_qly", password="qlyrw")
 mongo_client2 = mongo_client.MongodbClient(url_set, "qly_industry_168", username="tts_qly", password="qlyrw")
 mongo_client3 = mongo_client.MongodbClient({'s-bp1fb86105e14fa4.mongodb.rds.aliyuncs.com:3717'}, "tts_douyin", username="tts_douyin", password="douyinrw")
+
+
 def get_file_content(filePath):
     with open(filePath, 'rb') as fp:
         return fp.read()
 
 
+def get_douyin(type, param_info, proxy_ip):
+    if 'uid' in param_info:
+        uid = param_info['uid']
+    if 'mid' in param_info:
+        mid = param_info['mid']
+    if 'aweme_id' in param_info:
+        aweme_id = param_info['aweme_id']
+    if type == 'userinfo':
+        url = 'https://www.douyin.com/share/user/%s' % uid
+        result = test_userinfo.handle_douyin_info(url, proxy_ip)
+    elif type == 'aweme_play':
+        if 'uid' not in locals().keys():
+            dytk, uid, author_name = douyin_util.get_aweme_dytk(aweme_id, mid, proxy_ip)
+
+        result = test_douyin_sign.spider_aweme_list(uid, aweme_id, proxy_ip)
+    elif type == 'aweme_info':
+        result = test_douyin_awemeinfo.get_aweme_info(aweme_id, mid, proxy_ip)
+    elif type == 'aweme_list':
+        result = test_douyin_sign.spider_aweme_list(uid, '', proxy_ip)
+
+    return result
 
 
 
+proxy_ip = ip_proxy.get_proxy()
 
-import codecs
+
+@app.route('/douyin_userinfo')
+def douyin_userinfo():
+    param_info = request.values.to_dict()
+    type = 'userinfo'
+    return douyin_proxy(type,param_info)
+
+
+@app.route('/douyin_awemelist')
+def douyin_awemelist():
+    param_info = request.values.to_dict()
+    type = 'aweme_list'
+    return douyin_proxy(type, param_info)
+
+
+@app.route('/douyin_awemeinfo')
+def douyin_awemeinfo():
+    param_info = request.values.to_dict()
+    if 'type' in param_info:
+        type = param_info['type']
+    else:
+        type = 'aweme_info'
+    return douyin_proxy(type, param_info)
+
+
+def douyin_proxy(type, param_info):
+    global proxy_ip
+    print('获取代理IP')
+    print(proxy_ip)
+    # proxy_ip = ''
+    try:
+        result = get_douyin(type, param_info, proxy_ip)
+    except requests.exceptions.ProxyError:
+        print('代理ip失效, 无法进行吗 访问，重新获取')
+        proxy_ip = ip_proxy.get_proxy()
+        result = get_douyin(type, param_info, proxy_ip)
+    except requests.exceptions.ConnectTimeout:
+        print('代理ip失效，无法进行页面访问，重新获取')
+        proxy_ip = ip_proxy.get_proxy()
+        result = get_douyin(type, param_info, proxy_ip)
+
+    return result
 
 
 @app.route('/accept_data', methods=['post'])
