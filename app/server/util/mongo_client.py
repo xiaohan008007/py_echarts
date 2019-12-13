@@ -49,8 +49,7 @@ class MongodbClient(object):
     def get_tb_cid(self):
         return self.db['index_1688_history'].find({'rdate': '2019-01-09', 'index_tb': {'$gt': 0}})
 
-    def get_userfans(self, author_id):
-        return self.db['douyin_fans_desc'].find({'authorId':author_id})
+
 
     def update_userfans(self, userfans):
         self.db['douyin_fans_desc'].update_#!/usr/bin/env python

@@ -1,8 +1,9 @@
 import re
 import requests
+import time
+import sys
 from lxml import etree
 import redis
-from .util import ip_proxy
 from .util.proxy_exception import ProxyLoseException
 
 pool = redis.ConnectionPool(host='192.168.3.194', port=6379, decode_responses=True)
@@ -84,27 +85,36 @@ def handle_decode(input_data):
 
 
 def handle_douyin_info(url, proxies):
-    header = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.75 Safari/537.36'
-    }
-    if proxies:
-        response = requests.get(url=url, headers=header, proxies=proxies, verify=False, timeout=3)
-    else:
-        response = requests.get(url=url, headers=header, verify=False, timeout=3)
-    # response = requests.get(url=url, headers=header,  verify=False, timeout=3)
-    # if not ip_proxy.check_response_code(response):
-    #     raise ProxyLoseException('代理ip失效')
-    return handle_decode(response.text)
+    for k in range(50):
+        header = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.75 Safari/537.36'
+        }
+        if proxies:
+            response = requests.get(url=url, headers=header, proxies=proxies, verify=False, timeout=3)
+        else:
+            response = requests.get(url=url, headers=header, verify=False, timeout=3)
+        # response = requests.get(url=url, headers=header,  verify=False, timeout=3)
+        # if not ip_proxy.check_response_code(response):
+        #     raise ProxyLoseException('代理ip失效')
+        result = response.text.strip()
+        if result:
+            break
+        else:
+            time.sleep(1)
+
+    return handle_decode(result)
 
 
 if __name__ == '__main__':
     url = 'https://www.douyin.com/share/user/81939158402'
-    proxies = ip_proxy.get_proxy()
-    try:
-        result = handle_douyin_info(url, proxies)
-    except ProxyLoseException as e:
-        print(e)
-        print('===============')
-        proxies = ip_proxy.get_proxy()
-        result = handle_douyin_info(url, proxies)
+    res = requests.get(url,verify=False)
+    print(res.text)
+    # proxies = ip_proxy.get_proxy()
+    # try:
+    #     result = handle_douyin_info(url, proxies)
+    # except ProxyLoseException as e:
+    #     print(e)
+    #     print('===============')
+    #     proxies = ip_proxy.get_proxy()
+    #     result = handle_douyin_info(url, proxies)
 

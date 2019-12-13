@@ -47,13 +47,13 @@ def main():
     # print('get_nearby_feed:' + nearby_feed)
     #
     # # 获取用户信息
-    for k in range(0,1):
-        user_info = api.get_user_info('16752150320')
-        print('get_user_info:' + user_info)
-    #
-    # # 获取用户作品
-    user_post = api.get_user_post('75198486940', 0, 20)
-    print('get_user_post:' + user_post)
+    # for k in range(0,1):
+    #     user_info = api.get_user_info('16752150320')
+    #     print('get_user_info:' + user_info)
+    # #
+    # # # 获取用户作品
+    # user_post = api.get_user_post('75198486940', 0, 20)
+    # print('get_user_post:' + user_post)
     #
     # # 获取用户动态
     # user_forwards = api.get_user_forward_list('102388086611', 0, 20)
@@ -88,8 +88,8 @@ def main():
     # print('get_hot_category_list:' + category_list)
     #
     # 综合搜索
-    general_search_ret = api.general_search('lovedesign666', 0, 10)
-    print('general_search_ret:' + general_search_ret)
+    # general_search_ret = api.general_search('lovedesign666', 0, 10)
+    # print('general_search_ret:' + general_search_ret)
     #
     # # 视频搜索
     # video_search_ret = api.video_search('养生', 0, 10)
@@ -102,7 +102,7 @@ def main():
     # print('get_video_comment_list:' + comment_list)
     #
     # # 获取视频详情
-    video_detail = api.get_video_detail('6697520923328728333')
+    video_detail = api.get_video_detail('6743791024440659211')
     print('get_video_detail:' + video_detail)
     # #
     # # # 获取音乐详情

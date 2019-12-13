@@ -25,6 +25,9 @@ xlrd = "*"
 "bs4" = "*"
 aiohttp = "*"
 pyexecjs = "*"
+threadpool = "*"
+gevent = "*"
+selenium = "*"
 
 [dev-packages]
 

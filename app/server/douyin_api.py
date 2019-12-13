@@ -26,13 +26,14 @@ from elasticsearch.helpers import bulk
 from .douyin.douyinapi_5 import DouYinApi
 import datetime
 import redis
-from .douyin.util import ip_proxy
+from .util import ip_proxy
 from .douyin.util import douyin_util
 from .douyin.util.proxy_exception import ProxyLoseException
 from .douyin import test_userinfo
 from .douyin import test_douyin_sign
 from .douyin import test_douyin_awemeinfo
-
+from .taobao import taobaom
+from selenium import webdriver
 
 pool = redis.ConnectionPool(host='192.168.3.194', port=6379, decode_responses=True)
 r = redis.Redis(connection_pool=pool)
@@ -41,7 +42,9 @@ pool2 = redis.ConnectionPool(host='192.168.3.194', port=6379, db=3)
 r2 = redis.Redis(connection_pool=pool2)
 es = Elasticsearch([{'host':'es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com', 'port':9200}], http_auth=('elastic', 'PlRJ2Coek4Y6'))
 
-
+pool5 = redis.ConnectionPool(host='192.168.3.194', port=6379, db=5)
+rds5 = redis.Redis(connection_pool=pool5)
+douyin_uid_signature = 'douyin:web:uid:awemes:signature:'
 
 
 app = Blueprint('douyin_api', __name__)
@@ -57,6 +60,32 @@ mongo_client2 = mongo_client.MongodbClient(url_set, "qly_industry_168", username
 mongo_client3 = mongo_client.MongodbClient({'s-bp1fb86105e14fa4.mongodb.rds.aliyuncs.com:3717'}, "tts_douyin", username="tts_douyin", password="douyinrw")
 
 
+
+chrome_driver = ''
+
+@app.route('/douyin/uid_signature')
+def uid_signature():
+    param_info = request.values.to_dict()
+    if 'uid' not in param_info:
+        return 'uid required!!'
+    uid = param_info['uid']
+    r_key = douyin_uid_signature+uid
+    if rds5.get(r_key):
+        return rds5.get(r_key)
+
+    global chrome_driver
+    if not chrome_driver:
+        options = douyin_util.init_chrome_option(webdriver)
+        # options.add_argument('-dump-dom')
+        chrome_driver = webdriver.Chrome(chrome_options=options)
+    chrome_driver.get("https://www.douyin.com/share/user/%s" % uid)
+    # html = chrome_driver.page_source
+    # chrome_driver.quit()
+    # if html.find(uid) > -1:
+    return rds5.get(r_key)
+        # return 'successs'
+    return 'fail'
+
 def get_file_content(filePath):
     with open(filePath, 'rb') as fp:
         return fp.read()
@@ -69,31 +98,56 @@ def get_douyin(type, param_info, proxy_ip):
         mid = param_info['mid']
     if 'aweme_id' in param_info:
         aweme_id = param_info['aweme_id']
+    max_sp_page = 5
+    if 'max_page' in param_info:
+        max_sp_page = int(param_info['max_page'])
     if type == 'userinfo':
         url = 'https://www.douyin.com/share/user/%s' % uid
         result = test_userinfo.handle_douyin_info(url, proxy_ip)
     elif type == 'aweme_play':
         if 'uid' not in locals().keys():
-            dytk, uid, author_name = douyin_util.get_aweme_dytk(aweme_id, mid, proxy_ip)
+            dytk, uid, author_name = douyin_util.get_dytk(aweme_id, mid, '', proxy_ip)
 
-        result = test_douyin_sign.spider_aweme_list(uid, aweme_id, proxy_ip)
+        result = test_douyin_sign.spider_aweme_list(uid, aweme_id, proxy_ip, max_sp_page)
     elif type == 'aweme_info':
         result = test_douyin_awemeinfo.get_aweme_info(aweme_id, mid, proxy_ip)
     elif type == 'aweme_list':
-        result = test_douyin_sign.spider_aweme_list(uid, '', proxy_ip)
+        result = test_douyin_sign.spider_aweme_list(uid, '', proxy_ip, max_sp_page)
 
     return result
 
 
 
-proxy_ip = ip_proxy.get_proxy()
+proxy_ip = ''
+
+
+@app.route('/taobao/productinfo')
+def productinfo():
+    global proxy_ip
+    print('获取代理IP')
+    print(proxy_ip)
+    param_info = request.values.to_dict()
+    if 'spid' not in param_info:
+        return '缺少参数spid'
+    spid = param_info['spid']
+    try:
+        result = taobaom.handle_product_info(spid, proxy_ip)
+    except requests.exceptions.ProxyError:
+        print('代理ip失效, 无法进行吗 访问，重新获取')
+        proxy_ip = ip_proxy.get_proxy()
+        result = taobaom.handle_product_info(spid, proxy_ip)
+    except requests.exceptions.ConnectTimeout:
+        print('代理ip失效，无法进行页面访问，重新获取')
+        proxy_ip = ip_proxy.get_proxy()
+        result = taobaom.handle_product_info(spid, proxy_ip)
+    return json.dumps(result, ensure_ascii=False)
 
 
 @app.route('/douyin_userinfo')
 def douyin_userinfo():
     param_info = request.values.to_dict()
     type = 'userinfo'
-    return douyin_proxy(type,param_info)
+    return douyin_proxy(type, param_info)
 
 
 @app.route('/douyin_awemelist')
@@ -115,6 +169,8 @@ def douyin_awemeinfo():
 
 def douyin_proxy(type, param_info):
     global proxy_ip
+    if not proxy_ip:
+        proxy_ip = ip_proxy.get_proxy()
     print('获取代理IP')
     print(proxy_ip)
     # proxy_ip = ''
@@ -382,9 +438,10 @@ def del_es(uid):
 
 @app.route('/douyin/find_es', methods=['get'])
 def import_es():
-    t = threading.Thread(target=find_es(), name='3')
-    t.start()
-    return "ok"
+    # t = threading.Thread(target=find_es(), name='3')
+    # t.start()
+    # return "ok"
+    return find_es()
 
 
 
@@ -477,8 +534,8 @@ def find_es():
             #   ,
             #   {"range": {
             #       "ts": {
-            #           "lte": "2019-06-13T10:50:00.000Z",
-            #           "gte": "2019-04-01T00:00:00.000Z"
+            #           #"lte": "2019-12-06T11:30:00.000Z",
+            #           "gte": "2019-12-06T11:30:00.000Z"
             #       }
             #   }}
               # ,
@@ -494,17 +551,17 @@ def find_es():
             # }
 
           ]
-          #   ,
-          # "must_not": [
-          #   # {"match": {
-          #   #   "douyin_cid": ""
-          #   # }}
-          #     {
-          #       "exists": {
-          #         "field": "douyin_cid"
-          #       }
-          #     }
-          # ]
+            ,
+          "must_not": [
+            # {"match": {
+            #   "douyin_cid": ""
+            # }}
+              {
+                "exists": {
+                  "field": "nickname_no_analyze"
+                }
+              }
+          ]
         }
       }
     }
@@ -515,7 +572,7 @@ def find_es():
 
 
 
-    result = es.search(index='douyin_sea_analyze_aweme_5', body=body,size=10000, scroll='1m')
+    result = es.search(index='douyin_sea_user_6', body=body,size=10000, scroll='1m')
 
 
     sid = result['_scroll_id']
@@ -546,8 +603,12 @@ def deal_s(result,push_total, writer):
     ACTIONS = []
     for source in result['hits']['hits']:
         my_source = source['_source']
-        if 'signature' in my_source:
+        if 'uid' not in my_source:
             continue
+        my_source['nickname_no_analyze'] = my_source.get('nickname', '')
+        my_source['author_id_no_analyze'] = my_source.get('author_id', '')
+        #if 'signature' in my_source:
+        #    continue
         #item['title_no_analyze'] = item['title']
         # uid = user['uid']
         # if 'signature'  in user:
@@ -621,17 +682,19 @@ def deal_s(result,push_total, writer):
         #
         # mongo_client3.update_userfans(userFans)
         # post_push(uid, '', 'local', '', 0)
+        # if my_source['author_id'] == '1216197284':
+        #     print()
         action = {
-                     "_index": "douyin_sea_analyze_aweme_5",
-                     "_type": "douyinseaaweme5Response",
-                    "_id":my_source['aweme_id']  # _id 也可以默认生成，不赋值
+                     "_index": "douyin_sea_user_6",
+                     "_type": "douyinseauser4Response",
+                    "_id":my_source['uid']  # _id 也可以默认生成，不赋值
                       }
         action['_source'] = my_source
         ACTIONS.append(action)
 
         push_total+=1
-    # success, _ = bulk(es, ACTIONS, index="douyin_sea_analyze_aweme_5", raise_on_error=True)
-    # print('Performed %d actions' % success)
+    success, _ = bulk(es, ACTIONS, index="douyin_sea_user_6", raise_on_error=True)
+    print('Performed %d actions' % success)
     return push_total
 
 
