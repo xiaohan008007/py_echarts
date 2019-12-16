@@ -17,7 +17,7 @@ def get_jdata(uid):
     # res = requests.get('http://49.233.200.77:5001/sign/%s/' % uid)
     # j_data = json.loads(res.text)
     # json_str = rds.get(douyin_uid_signature+uid)
-    res = requests.get('http://192.168.3.140:9911/douyin/uid_signature?uid=%s' % uid)
+    res = requests.get('http://127.0.0.1:9911/douyin/uid_signature?uid=%s' % uid)
     return json.loads(res.text)
 
 
@@ -139,7 +139,7 @@ def fetch_page(aweme_list, spider_info, s, uid, max_cursor, sign, dytk, aweme_id
                 print("========has_more")
                 print(json_data['has_more'])
                 max_cursor = json_data['max_cursor']
-                fetch_page(aweme_list, spider_info, s, uid, max_cursor, sign, dytk, aweme_id, proxies)
+                fetch_page(aweme_list, spider_info, s, uid, max_cursor, sign, dytk, aweme_id, ua, proxies)
 
             break
     print(total_aweme)

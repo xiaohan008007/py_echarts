@@ -63,28 +63,7 @@ mongo_client3 = mongo_client.MongodbClient({'s-bp1fb86105e14fa4.mongodb.rds.aliy
 
 chrome_driver = ''
 
-@app.route('/douyin/uid_signature')
-def uid_signature():
-    param_info = request.values.to_dict()
-    if 'uid' not in param_info:
-        return 'uid required!!'
-    uid = param_info['uid']
-    r_key = douyin_uid_signature+uid
-    if rds5.get(r_key):
-        return rds5.get(r_key)
 
-    global chrome_driver
-    if not chrome_driver:
-        options = douyin_util.init_chrome_option(webdriver)
-        # options.add_argument('-dump-dom')
-        chrome_driver = webdriver.Chrome(chrome_options=options)
-    chrome_driver.get("https://www.douyin.com/share/user/%s" % uid)
-    # html = chrome_driver.page_source
-    # chrome_driver.quit()
-    # if html.find(uid) > -1:
-    return rds5.get(r_key)
-        # return 'successs'
-    return 'fail'
 
 def get_file_content(filePath):
     with open(filePath, 'rb') as fp:

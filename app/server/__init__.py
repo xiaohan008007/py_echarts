@@ -34,11 +34,14 @@ def create_app(config_name=None):
 
     # 注册QLY图表接口
     if config["production"].QLY:
-        from .qly_api import app as api_blueprint
-        app.register_blueprint(api_blueprint)
+        #from .qly_api import app as api_blueprint
+        #app.register_blueprint(api_blueprint)
 
         from .douyin_api import app as douyin_blueprint
         app.register_blueprint(douyin_blueprint)
+
+        from .douyin_chrome import app as douyin_chrome_blueprint
+        app.register_blueprint(douyin_chrome_blueprint)
 
     # # 注册电商词性接口
     # if config["production"].PROPS:
