@@ -33,6 +33,9 @@ from .douyin import test_userinfo
 from .douyin import test_douyin_sign
 from .douyin import test_douyin_awemeinfo
 from .taobao import taobaom
+import logging
+
+logger = logging.getLogger(__name__)
 from selenium import webdriver
 
 pool = redis.ConnectionPool(host='192.168.3.194', port=6379, decode_responses=True)
@@ -90,12 +93,38 @@ def get_douyin(type, param_info, proxy_ip):
         result = test_douyin_sign.spider_aweme_list(uid, aweme_id, proxy_ip, max_sp_page)
     elif type == 'aweme_info':
         result = test_douyin_awemeinfo.get_aweme_info(aweme_id, mid, proxy_ip)
+        return mix_aweme(result, param_info)
+
     elif type == 'aweme_list':
         result = test_douyin_sign.spider_aweme_list(uid, '', proxy_ip, max_sp_page)
-
+        return mix_aweme(result, param_info)
     return result
 
 
+def mix_aweme(result, param_info):
+    if 'mix' in param_info:
+        j_data = json.loads(result)
+        aweme_list = j_data['aweme_list']
+        aweme_list_mix = []
+        for aweme in aweme_list:
+            aweme_mix = {}
+            aweme_mix['aweme_id'] = aweme['statistics']['aweme_id']
+            aweme_mix['comment_count'] = aweme['statistics']['comment_count']
+            aweme_mix['digg_count'] = aweme['statistics']['digg_count']
+            aweme_mix['play_count'] = aweme['statistics']['play_count']
+            aweme_mix['share_count'] = aweme['statistics']['share_count']
+            aweme_mix['forward_count'] = aweme['statistics']['forward_count']
+            aweme_mix['duration'] = aweme['video']['duration']
+            if 'real_addr' in param_info:
+                logger.info('info log')
+                url = aweme["video"]["play_addr"]["url_list"][0]
+                real_url = douyin_util.getRealPlayAddress(url)
+                aweme_mix['play_real_url'] = real_url
+            aweme_mix['desc'] = aweme['desc']
+            aweme_list_mix.append(aweme_mix)
+        j_data['aweme_list'] = aweme_list_mix
+        return json.dumps(j_data, ensure_ascii=False)
+    return result
 
 proxy_ip = ''
 
@@ -523,24 +552,24 @@ def find_es():
             #     "with_fusion_shop_entry": True
             #   }
             # },
-            # {
-            #   "exists": {
-            #     "field": "shoptype"
-            #   }
-            # }
+            {
+              "exists": {
+                "field": "author_id_analyze"
+              }
+            }
 
           ]
-            ,
-          "must_not": [
-            # {"match": {
-            #   "douyin_cid": ""
-            # }}
-              {
-                "exists": {
-                  "field": "nickname_no_analyze"
-                }
-              }
-          ]
+          #   ,
+          # "must_not": [
+          #   # {"match": {
+          #   #   "douyin_cid": ""
+          #   # }}
+          #     {
+          #       "exists": {
+          #         "field": "nickname_no_analyze"
+          #       }
+          #     }
+          # ]
         }
       }
     }
@@ -584,8 +613,10 @@ def deal_s(result,push_total, writer):
         my_source = source['_source']
         if 'uid' not in my_source:
             continue
-        my_source['nickname_no_analyze'] = my_source.get('nickname', '')
+        # my_source['nickname_no_analyze'] = my_source.get('nickname', '')
+        del my_source['author_id_analyze']
         my_source['author_id_no_analyze'] = my_source.get('author_id', '')
+
         #if 'signature' in my_source:
         #    continue
         #item['title_no_analyze'] = item['title']

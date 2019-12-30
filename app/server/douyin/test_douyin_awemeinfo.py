@@ -1,5 +1,5 @@
 import requests
-from .util import douyin_util
+from util import douyin_util
 import json
 
 
@@ -49,8 +49,8 @@ def get_video_no_watermark(aweme_id, mid, proxies):
     return getRealPlayAddress(url)
 
 if __name__ == '__main__':
-    aweme_id = '6751233447093603588'
-    mid = '6751200837449747204'
+    aweme_id = '6772102552432430349'
+    mid = '6772047033906907911'
     # dytk='71cfc9c2cb062d09b18719b96a7733fad2f7673a72cf2fb3238e47b2a09fd448'
-    print(get_video_no_watermark(aweme_id, mid, ''))
+    print(douyin_util.getRealPlayAddress(aweme_id, mid, ''))
 

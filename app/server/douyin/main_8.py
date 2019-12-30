@@ -136,8 +136,8 @@ def main():
     # print('get_hot_category_list:' + category_list)
 
     # 综合搜索
-    general_search_ret = api.general_search('美食', 0, 10)
-    print('general_search_ret:' + general_search_ret)
+    # general_search_ret = api.general_search('美食', 0, 10)
+    # print('general_search_ret:' + general_search_ret)
 
     # 视频搜索
     # video_search_ret = api.video_search('养生', 0, 10)
@@ -168,12 +168,12 @@ def main():
     # print('promotion_list:' + promotion_list)
 
     # 获取直播房间信息
-    # webcast_room_info = api.get_webcast_room_info('6731613896211188484')
-    # print('webcast_room_info:' + webcast_room_info)
+    webcast_room_info = api.get_webcast_room_info('6771591888022850307')
+    print('webcast_room_info:' + webcast_room_info)
 
     # 获取直播用户信息
-    # webcast_user_info = api.get_webcast_user_info('6731613896211188484', '108160072764')
-    # print('webcast_user_info:' + webcast_user_info)
+    webcast_user_info = api.get_webcast_user_info('6771591888022850307', '51138421775')
+    print('webcast_user_info:' + webcast_user_info)
 
     # 获取直播本场榜
     # webcast_ranklist = api.get_webcast_ranklist('6731613896211188484', '108160072764')

@@ -4,7 +4,7 @@ import time
 import sys
 from lxml import etree
 import redis
-from .util.proxy_exception import ProxyLoseException
+# from .util.proxy_exception import ProxyLoseException
 
 pool = redis.ConnectionPool(host='192.168.3.194', port=6379, decode_responses=True)
 r = redis.Redis(connection_pool=pool)
@@ -76,10 +76,18 @@ def handle_decode(input_data):
         douyin_info['digg'] = digg
     #作品数
     aweme_like_count = html.xpath('//div[@class="video-tab"]/div')[0].xpath('string(.)')
-    aweme_count = aweme_like_count.split('喜欢')[0].replace('作品', '').strip()
-    like_count = aweme_like_count.split('喜欢')[1].strip()
+    if aweme_like_count.find('音乐') > -1:
+        music_aweme_count = aweme_like_count.split('喜欢')[0].strip()
+        aweme_count = music_aweme_count.split('作品')[1].strip()
+        music_count = music_aweme_count.split('作品')[0].split('音乐')[1].strip()
+        douyin_info['music_count'] = music_count
+        like_count = aweme_like_count.split('喜欢')[1].strip()
+    else:
+        aweme_count = aweme_like_count.split('喜欢')[0].replace('作品', '').strip()
+        like_count = aweme_like_count.split('喜欢')[1].strip()
     douyin_info['like'] = like_count
     douyin_info['aweme_count'] = aweme_count
+
     return douyin_info
 
 
@@ -106,9 +114,11 @@ def handle_douyin_info(url, proxies):
 
 
 if __name__ == '__main__':
-    url = 'https://www.douyin.com/share/user/81939158402'
-    res = requests.get(url,verify=False)
-    print(res.text)
+    result = handle_douyin_info('https://www.douyin.com/share/user/68310389333', '')
+    print(result)
+    # url = 'https://www.douyin.com/share/user/81939158402'
+    # res = requests.get(url,verify=False)
+    # print(res.text)
     # proxies = ip_proxy.get_proxy()
     # try:
     #     result = handle_douyin_info(url, proxies)

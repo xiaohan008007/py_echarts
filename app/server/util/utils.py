@@ -14,29 +14,30 @@ local = pytz.timezone("Asia/Shanghai")
 # log相关
 ################################################################################
 def init_logger():
+    return ''
     """
 
     :return:
     """
-    root_logger = logging.getLogger(__name__)
-    root_logger.setLevel(logging.DEBUG)
+    # root_logger = logging.getLogger(__name__)
+    # root_logger.setLevel(logging.DEBUG)
+    #
+    # rotate_handler = handlers.TimedRotatingFileHandler(basedir + "/log/mylog", when='H', interval=1,
+    #                                                    backupCount=48)
+    # rotate_handler.suffix = "%Y%m%d-%H.log"
+    # rotate_handler.setLevel(logging.INFO)
+    #
+    # stream_handler = logging.StreamHandler()
+    # stream_handler.setLevel(logging.WARNING)
+    #
+    # formatter = logging.Formatter("%(levelname)-8s %(asctime)s %(filename)s:%(lineno)d""]%(message)s")
+    # # rotate_handler.setFormatter(formatter)
+    # stream_handler.setFormatter(formatter)
+    #
+    # root_logger.addHandler(stream_handler)
+    # root_logger.addHandler(rotate_handler)
 
-    rotate_handler = handlers.TimedRotatingFileHandler(basedir + "/log/mylog", when='H', interval=1,
-                                                       backupCount=48)
-    rotate_handler.suffix = "%Y%m%d-%H.log"
-    rotate_handler.setLevel(logging.INFO)
-
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.WARNING)
-
-    formatter = logging.Formatter("%(levelname)-8s %(asctime)s %(filename)s:%(lineno)d""]%(message)s")
-    # rotate_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
-
-    root_logger.addHandler(stream_handler)
-    root_logger.addHandler(rotate_handler)
-
-    return root_logger
+    # return root_logger
 
 
 ################################################################################

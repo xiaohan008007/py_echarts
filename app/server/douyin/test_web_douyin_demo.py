@@ -22,12 +22,13 @@ sys.path.append(parentUrl)
 from util.douyin_util import *
 
 def get_jdata(uid):
-    # res = requests.get('http://49.233.200.77:5001/sign/%s/' % uid)
-    # j_data = json.loads(res.text)
-    json_str = rds.get(douyin_uid_signature+uid)
-    return json.loads(json_str)
+    res = requests.get('http://127.0.0.1:5000/sign/%s/' % uid)
+    j_data = json.loads(res.text)
+    return j_data
+    # json_str = rds.get(douyin_uid_signature+uid)
+    # return json.loads(json_str)
 def test():
-    uid = '1305874926407576'
+    uid = '105664583688'
     # signature =get_sign(uid)
     # print(signature)
     j_data = get_jdata(uid)

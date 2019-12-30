@@ -113,7 +113,7 @@ def init_chrome_option(webdriver):
 
     mimvp_proxy = {
 
-        'ip': '192.168.3.140',  # ip
+        'ip': '127.0.0.1',  # ip
 
         'port_https': 8887,  # http, https
 
@@ -139,3 +139,28 @@ def init_chrome_option(webdriver):
 
     return options
 
+headers_video = {
+        "Range": "bytes=0-163840",
+        "Vpwp-Type": "preloader",
+        # "Vpwp-Raw-Key": "v0200f840000bf5svk8ckqbibu1vt8jg_h264_540p",
+        "Vpwp-Flag": "0",
+        "Accept-Encoding": "identity",
+        "Host": "aweme.snssdk.com",
+        # "Connection": "Keep-Alive",
+        "User-Agent": "okhttp/3.10.0.1"
+    }
+
+
+def getRealPlayAddress(url):
+    res = requests.get(url, headers=headers_video, allow_redirects=False)
+    if res.status_code == 302:
+        long_url = res.headers['Location']
+        headers_video['Referer'] = long_url
+        return long_url
+    return None
+
+#
+# def get_video_no_watermark(aweme_id, mid, proxies):
+#     info = json.loads(get_aweme_info(aweme_id, mid, ''))
+#     url = info["video"]["play_addr"]["url_list"][0]
+#     return getRealPlayAddress(url)

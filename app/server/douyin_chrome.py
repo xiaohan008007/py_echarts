@@ -2,6 +2,7 @@
 import threading
 from flask import render_template, Blueprint, request, send_file, Flask, jsonify
 from .util.utils import init_logger
+import time
 
 
 import redis
@@ -44,7 +45,11 @@ def uid_signature():
     # html = chrome_driver.page_source
     # chrome_driver.quit()
     # if html.find(uid) > -1:
-    return rds5.get(r_key)
+    for k in range(200):
+        if rds5.get(r_key):
+            return rds5.get(r_key)
+        time.sleep(0.01)
+    # return rds5.get(r_key)
         # return 'successs'
     return 'fail'
 

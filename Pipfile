@@ -28,6 +28,8 @@ pyexecjs = "*"
 threadpool = "*"
 gevent = "*"
 selenium = "*"
+pyppeteer = "*"
+pyquery = "*"
 
 [dev-packages]
 
