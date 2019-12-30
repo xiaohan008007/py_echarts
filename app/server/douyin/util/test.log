@@ -1,0 +1,10 @@
+Thu, 07 Nov 2019 16:51:57 - elasticsearch - INFO - GET http://es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com:9200/douyin_sea_analyze_aweme_5/_search?scroll=1m&size=10000 [status:200 request:2.729s]
+Thu, 07 Nov 2019 16:51:58 - elasticsearch - INFO - GET http://es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com:9200/_search/scroll?scroll=1m [status:200 request:0.588s]
+Thu, 07 Nov 2019 16:51:58 - elasticsearch - INFO - GET http://es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com:9200/_search/scroll?scroll=1m [status:200 request:0.043s]
+Thu, 07 Nov 2019 16:54:38 - elasticsearch - INFO - GET http://es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com:9200/douyin_sea_analyze_aweme_5/_search?scroll=1m&size=10000 [status:200 request:2.594s]
+Thu, 07 Nov 2019 16:54:39 - elasticsearch - INFO - GET http://es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com:9200/_search/scroll?scroll=1m [status:200 request:0.709s]
+Thu, 07 Nov 2019 16:54:39 - elasticsearch - INFO - GET http://es-cn-v6418omlz000m5fr4.elasticsearch.aliyuncs.com:9200/_search/scroll?scroll=1m [status:200 request:0.041s]
+Thu, 07 Nov 2019 19:05:02 - root - INFO - uid=59165176231 total_num=42 page=2 sp_times=148 12 second
+Thu, 07 Nov 2019 19:06:57 - root - INFO - uid=58403943903 total_num=36 page=2 sp_times=47 4 second
+Fri, 08 Nov 2019 14:28:04 - root - INFO - 58403943903报错了，终止
+Fri, 08 Nov 2019 14:29:30 - root - INFO - 58403943903报错了，终止
