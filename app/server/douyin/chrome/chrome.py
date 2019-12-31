@@ -12,7 +12,7 @@ webdriver_js = '''() =>
 '''
 
 async def connect_chrome():
-    browser = await launch(headless=False, args=["--no-sandbox"])
+    browser = await launch(headless=True, args=["--no-sandbox"])
     with open("ws","w") as f:
         f.write(browser.wsEndpoint)
     page = await browser.pages()
