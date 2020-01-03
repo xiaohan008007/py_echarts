@@ -13,7 +13,9 @@ def get_aweme_info(aweme_id, mid, proxies):
     json_data = json.loads(res.text)
     json_data['uid'] = uid
     json_data['authorName'] = authorName
-    return json.dumps(json_data['item_list'][0], ensure_ascii=False)
+    json_data['aweme_list'] = json_data['item_list']
+    del json_data['item_list']
+    return json.dumps(json_data, ensure_ascii=False)
 
 
 

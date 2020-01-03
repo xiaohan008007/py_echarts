@@ -91,6 +91,7 @@ def get_douyin(type, param_info, proxy_ip):
             dytk, uid, author_name = douyin_util.get_dytk(aweme_id, mid, '', proxy_ip)
 
         result = test_douyin_sign.spider_aweme_list(uid, aweme_id, proxy_ip, max_sp_page)
+        return mix_aweme(result, param_info)
     elif type == 'aweme_info':
         result = test_douyin_awemeinfo.get_aweme_info(aweme_id, mid, proxy_ip)
         return mix_aweme(result, param_info)
@@ -104,6 +105,7 @@ def get_douyin(type, param_info, proxy_ip):
 def mix_aweme(result, param_info):
     if 'mix' in param_info:
         j_data = json.loads(result)
+        # print(j_data)
         aweme_list = j_data['aweme_list']
         aweme_list_mix = []
         for aweme in aweme_list:
@@ -111,13 +113,14 @@ def mix_aweme(result, param_info):
             aweme_mix['aweme_id'] = aweme['statistics']['aweme_id']
             aweme_mix['comment_count'] = aweme['statistics']['comment_count']
             aweme_mix['digg_count'] = aweme['statistics']['digg_count']
-            aweme_mix['play_count'] = aweme['statistics']['play_count']
-            aweme_mix['share_count'] = aweme['statistics']['share_count']
-            aweme_mix['forward_count'] = aweme['statistics']['forward_count']
+            aweme_mix['play_count'] = aweme['statistics'].get('play_count', 0)
+            aweme_mix['share_count'] = aweme['statistics'].get('share_count', 0)
+            aweme_mix['forward_count'] = aweme['statistics'].get('forward_count', 0)
             aweme_mix['duration'] = aweme['video']['duration']
             if 'real_addr' in param_info:
-                logger.info('sp real_addr:%s' % aweme_mix['aweme_id'])
+
                 url = aweme["video"]["play_addr"]["url_list"][0]
+                logger.info('sp real_addr:%s , url:%s' % (aweme_mix['aweme_id'], url))
                 real_url = douyin_util.getRealPlayAddress(url)
                 aweme_mix['play_real_url'] = real_url
             aweme_mix['desc'] = aweme['desc']

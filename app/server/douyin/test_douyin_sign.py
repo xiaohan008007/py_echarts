@@ -106,9 +106,9 @@ def spider_aweme_list(uid, aweme_id, proxies, max_sp_page):
     result['total'] = len(aweme_list)
     result['sp_info'] = spider_info
     if aweme_id:
-        result['aweme_info'] = the_aweme
-    else:
-        result['aweme_list'] = aweme_list
+        aweme_list = []
+        aweme_list.append(the_aweme)
+    result['aweme_list'] = aweme_list
     return json.dumps(result, ensure_ascii=False)
 
 def fetch_page(aweme_list, spider_info, s, uid, max_cursor, sign, dytk, aweme_id, ua, proxies):
