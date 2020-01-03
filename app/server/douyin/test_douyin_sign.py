@@ -14,10 +14,10 @@ rds = redis.Redis(connection_pool=pool)
 douyin_uid_signature = 'douyin:web:uid:awemes:signature:'
 
 def get_jdata(uid):
-    # res = requests.get('http://49.233.200.77:5001/sign/%s/' % uid)
+    res = requests.get('http://tengxun_test.99doushang.com/sign/%s/' % uid)
     # j_data = json.loads(res.text)
     # json_str = rds.get(douyin_uid_signature+uid)
-    res = requests.get('http://10.0.0.40:9911/douyin/uid_signature?uid=%s' % uid)
+    # res = requests.get('http://10.0.0.40:9911/douyin/uid_signature?uid=%s' % uid)
     return json.loads(res.text)
 
 
@@ -80,7 +80,7 @@ def spider_aweme_list(uid, aweme_id, proxies, max_sp_page):
     # dytk = douyin_util.get_dytk('', '', uid, proxies)
     j_data = get_jdata(uid)
     sign = j_data['signature']
-    dytk = j_data['dytk']
+    dytk = j_data.get('dytk','')
     ua = j_data['user-agent']
     fetch_page(aweme_list, spider_info, s, uid, 0, sign, dytk, aweme_id, ua, proxies)
 
@@ -119,7 +119,7 @@ def fetch_page(aweme_list, spider_info, s, uid, max_cursor, sign, dytk, aweme_id
     while True:
         times += 1
         spider_info['total_sp_times'] += 1
-        print(times)
+        print("%s页，尝试：%s"%(spider_info['page'], times))
         result = get_aweme_list(s, uid, max_cursor, sign, dytk, ua, proxies)
         json_data = json.loads(result)
         if json_data['aweme_list']:

@@ -116,7 +116,7 @@ def mix_aweme(result, param_info):
             aweme_mix['forward_count'] = aweme['statistics']['forward_count']
             aweme_mix['duration'] = aweme['video']['duration']
             if 'real_addr' in param_info:
-                logger.info('info log')
+                logger.info('sp real_addr:%s' % aweme_mix['aweme_id'])
                 url = aweme["video"]["play_addr"]["url_list"][0]
                 real_url = douyin_util.getRealPlayAddress(url)
                 aweme_mix['play_real_url'] = real_url
